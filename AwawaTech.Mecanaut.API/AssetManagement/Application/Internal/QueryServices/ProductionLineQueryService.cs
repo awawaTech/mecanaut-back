@@ -3,7 +3,7 @@ using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Queries;
 using AwawaTech.Mecanaut.API.AssetManagement.Domain.Repositories;
 using AwawaTech.Mecanaut.API.AssetManagement.Domain.Services;
 
-namespace AssetManagement.Application.Internal.QueryServices;
+namespace AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.QueryServices;
 
 public class ProductionLineQueryService(IProductionLineRepository lines)
     : IProductionLineQueryService
