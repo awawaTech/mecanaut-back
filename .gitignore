@@ -1,0 +1,16 @@
+# Archivos y carpetas locales
+.vs/
+*.user
+*.suo
+*.ncb
+*.aps
+*.cache
+
+# Build output
+bin/
+obj/
+TestResults/
+
+# Paquetes NuGet
+*.nupkg
+packages/

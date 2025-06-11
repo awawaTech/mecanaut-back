@@ -1,0 +1,6 @@
+@AwawaTech.Mecanaut.API_HostAddress = http://localhost:5128
+
+GET {{AwawaTech.Mecanaut.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
