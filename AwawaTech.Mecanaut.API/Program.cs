@@ -205,11 +205,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ───────────── HTTP pipeline ─────────────
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("AllowAllPolicy");
 
@@ -219,7 +216,10 @@ app.UseRouting();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
-app.UseRequestAuthorization();
+// Aplicar autorización solo a rutas que no sean de Swagger
+app.UseWhen(
+    ctx => !ctx.Request.Path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase),
+    subApp => subApp.UseRequestAuthorization());
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
