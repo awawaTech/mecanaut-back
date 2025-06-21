@@ -29,7 +29,7 @@ public interface IBaseRepository<TEntity>
     /// <returns>
     ///     The entity if found, otherwise null
     /// </returns>
-    Task<TEntity?> FindByIdAsync(int id);
+    Task<TEntity?> FindByIdAsync(long id);
 
     void Update(TEntity entity);
 
