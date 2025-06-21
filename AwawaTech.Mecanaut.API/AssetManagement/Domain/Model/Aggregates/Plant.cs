@@ -1,46 +1,75 @@
-using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Enums;
+using AwawaTech.Mecanaut.API.AssetManagement.Domain.Exceptions;
+using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Events;
 using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
-using AwawaTech.Mecanaut.API.Shared.Domain.Model;
+using AwawaTech.Mecanaut.API.Shared.Domain.Model.Entities;
 using AwawaTech.Mecanaut.API.Shared.Domain.Model.ValueObjects;
 
 namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Aggregates;
 
-public class Plant : ITenantScopedAggregate
+public class Plant : AuditableAggregateRoot
 {
-    private readonly List<ProductionLine> _lines = [];
-    public PlantId Id { get; }
-    public TenantId Tenant { get; }
-    public string Name { get; private set; }
-    public string Location { get; private set; }
-    public PlantStatus Status { get; private set; }
+    public string Name { get; private set; } = null!;
+    public Location Location { get; private set; }
+    public ContactInfo ContactInfo { get; private set; }
+    public bool Active { get; private set; }
+    public TenantId TenantId { get; private set; }
 
-    public IReadOnlyList<ProductionLine> Lines => _lines.AsReadOnly();
-
-    private Plant(PlantId id, TenantId tenant, string name, string location)
+    private Plant(string name, Location location, ContactInfo contactInfo, TenantId tenantId)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name cannot be empty", nameof(name));
-        if (string.IsNullOrWhiteSpace(location)) throw new ArgumentException("Location cannot be empty", nameof(location));
+        ValidateName(name);
+        Name        = name;
+        Location    = location;
+        ContactInfo = contactInfo;
+        TenantId    = tenantId;
+        Active      = true;
+        AddDomainEvent(new PlantCreatedEvent(Id, name, tenantId.Value));
+    }
 
-        Id = id;
-        Tenant = tenant;
-        Name = name;
+    protected Plant() { }
+
+    public static Plant Create(string name, Location location, ContactInfo contactInfo, TenantId tenantId)
+        => new(name, location, contactInfo, tenantId);
+
+    /* ------------ Behaviour ------------- */
+    public void Activate()
+    {
+        if (Active) throw new PlantAlreadyActiveException($"Plant {Name} already active");
+        Active = true;
+        AddDomainEvent(new PlantActivatedEvent(Id, Name));
+    }
+
+    public void Deactivate()
+    {
+        if (!Active) throw new PlantAlreadyInactiveException($"Plant {Name} already inactive");
+        Active = false;
+        AddDomainEvent(new PlantDeactivatedEvent(Id, Name));
+    }
+
+    public bool IsActive() => Active;
+
+    public bool CanAddProductionLine() => Active;
+
+    public void UpdateContactInfo(ContactInfo info)
+    {
+        ContactInfo = info;
+    }
+
+    public void UpdateLocation(Location location)
+    {
         Location = location;
-        Status = PlantStatus.Draft;
     }
 
-
-
-    public static Plant Create(TenantId tenant, string name, string location) =>
-        new(PlantId.New(), tenant, name, location);
-
-    public ProductionLine AddLine(string name, int capacity)
+    public void UpdateInfo(string name, Location location, ContactInfo contact)
     {
-        if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be > 0");
-        var line = ProductionLine.Create(Tenant, Id, name, capacity);
-        _lines.Add(line);
-        return line;
+        ValidateName(name);
+        Name        = name;
+        Location    = location;
+        ContactInfo = contact;
     }
 
-    public void Activate() => Status = PlantStatus.Active;
-    public void Deactivate() => Status = PlantStatus.Deactivated;
-}
+    private static void ValidateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name required", nameof(name));
+        if (name.Length > 100) throw new ArgumentException("Name too long (>100)", nameof(name));
+    }
+} 

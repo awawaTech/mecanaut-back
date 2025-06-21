@@ -1,99 +1,112 @@
-// … using actuales …
-using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Aggregates;          // ← nuevos usings
-using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
-using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Enums;
-using AwawaTech.Mecanaut.API.Shared.Domain.Model.ValueObjects;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using EntityFrameworkCore.CreatedUpdatedDate.Extensions;
-
-using Microsoft.EntityFrameworkCore;
+using AwawaTech.Mecanaut.API.IAM.Domain.Model.Entities;
+using AwawaTech.Mecanaut.API.IAM.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration.Extensions;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Multitenancy;
+using EntityFrameworkCore.CreatedUpdatedDate.Extensions;
+using Microsoft.EntityFrameworkCore;
+using AwawaTech.Mecanaut.API.Shared.Domain.Model.ValueObjects;
 
 namespace AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
-public class AppDbContext(DbContextOptions options, ITenantProvider tenantProvider)
-    : DbContext(options)
+/// <summary>
+///     Application database context for the Learning Center Platform
+/// </summary>
+/// <param name="options">
+///     The options for the database context
+/// </param>
+public class AppDbContext(DbContextOptions options) : DbContext(options)
 {
-    private readonly ITenantProvider _tenantProvider = tenantProvider;
-
-    protected override void OnConfiguring(DbContextOptionsBuilder builder)
+   /// <summary>
+   ///     On configuring the database context
+   /// </summary>
+   /// <remarks>
+   ///     This method is used to configure the database context.
+   ///     It also adds the created and updated date interceptor to the database context.
+   /// </remarks>
+   /// <param name="builder">
+   ///     The option builder for the database context
+   /// </param>
+   protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
         builder.AddCreatedUpdatedInterceptor();
         base.OnConfiguring(builder);
     }
 
-    protected override void OnModelCreating(ModelBuilder builder)
+   /// <summary>
+   ///     On creating the database model
+   /// </summary>
+   /// <remarks>
+   ///     This method is used to create the database model for the application.
+   /// </remarks>
+   /// <param name="builder">
+   ///     The model builder for the database context
+   /// </param>
+   protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        /* ========== AssetManagement ========== */
-        // Value-object converters
-        var plantIdConv       = new ValueConverter<PlantId, Guid>(v => v.Value, v => new PlantId(v));
-        var lineIdConv        = new ValueConverter<ProductionLineId, Guid>(v => v.Value, v => new ProductionLineId(v));
-        var machineryIdConv   = new ValueConverter<MachineryId, Guid>(v => v.Value, v => new MachineryId(v));
-        var tenantIdConv      = new ValueConverter<TenantId, Guid>(v => v.Value, v => new TenantId(v));
+        // -------------------- IAM Context --------------------
 
-        /* ---- Plant ---- */
-        builder.Entity<Plant>(cfg =>
+        // Roles
+        builder.Entity<Role>(e =>
         {
-            cfg.HasKey(p => p.Id);
-            cfg.Property(p => p.Id).HasConversion(plantIdConv);
-            cfg.Property(p => p.Tenant).HasConversion(tenantIdConv);
-            cfg.Property(p => p.Status).HasConversion<int>();
-
-            cfg.Property(p => p.Name).IsRequired().HasMaxLength(80);
-            cfg.Property(p => p.Location).IsRequired().HasMaxLength(120);
-
-            cfg.HasMany(p => p.Lines)
-               .WithOne()
-               .HasForeignKey(l => l.PlantId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-            // Filtro multi-tenant
-            cfg.HasQueryFilter(p => p.Tenant == _tenantProvider.Current);
+            e.HasKey(r => r.Id);
+            e.Property(r => r.Id).IsRequired().ValueGeneratedOnAdd();
+            e.Property(r => r.Name).IsRequired();
         });
 
-        /* ---- ProductionLine ---- */
-        builder.Entity<ProductionLine>(cfg =>
+        // Tenants
+        builder.Entity<Tenant>(e =>
         {
-            cfg.HasKey(l => l.Id);
-            cfg.Property(l => l.Id).HasConversion(lineIdConv);
-            cfg.Property(l => l.Tenant).HasConversion(tenantIdConv);
-            cfg.Property(l => l.PlantId).HasConversion(plantIdConv);
-            cfg.Property(l => l.Status).HasConversion<int>();
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Id).IsRequired().ValueGeneratedOnAdd();
+            e.Property(t => t.Ruc).IsRequired();
+            e.Property(t => t.LegalName).IsRequired();
+            e.Property(t => t.Code).IsRequired();
 
-            cfg.Property(l => l.Name).IsRequired().HasMaxLength(60);
+            // Email (value object as string)
+            e.Property(t => t.Email)
+             .HasConversion(
+                 v => v.HasValue ? v.Value.Value : null,
+                 v => string.IsNullOrEmpty(v) ? null : new EmailAddress(v!)
+             )
+             .HasColumnName("email")
+             .HasMaxLength(255);
 
-            cfg.HasMany(l => l.Machinery)
-               .WithOne()
-               .HasForeignKey(m => m.LineId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-            cfg.HasQueryFilter(l => l.Tenant == _tenantProvider.Current);
+            // PhoneNumber (value object as string)
+            e.Property(t => t.PhoneNumber)
+             .HasConversion(
+                 v => v.HasValue ? v.Value.Value : null,
+                 v => string.IsNullOrEmpty(v) ? null : new PhoneNumber(v!)
+             )
+             .HasColumnName("phone_number")
+             .HasMaxLength(25);
         });
 
-        /* ---- Machinery ---- */
-        builder.Entity<Machinery>(cfg =>
+        // Users
+        builder.Entity<User>(e =>
         {
-            cfg.HasKey(m => m.Id);
-            cfg.Property(m => m.Id).HasConversion(machineryIdConv);
-            cfg.Property(m => m.Tenant).HasConversion(tenantIdConv);
-            cfg.Property(m => m.LineId).HasConversion(lineIdConv);
-            cfg.Property(m => m.Status).HasConversion<int>();
+            e.HasKey(u => u.Id);
+            e.Property(u => u.Id).IsRequired().ValueGeneratedOnAdd();
+            e.Property(u => u.Username).IsRequired();
+            e.Property(u => u.PasswordHash).IsRequired();
 
-            cfg.Property(m => m.Model).IsRequired().HasMaxLength(60);
-            cfg.Property(m => m.Brand).IsRequired().HasMaxLength(60);
+            e.Property(u => u.Email)
+             .HasConversion(
+                 v => v.HasValue ? v.Value.Value : null,
+                 v => string.IsNullOrEmpty(v) ? null : new EmailAddress(v!)
+             )
+             .HasColumnName("email")
+             .HasMaxLength(255);
 
-            cfg.HasQueryFilter(m => m.Tenant == _tenantProvider.Current);
+            e.HasMany(u => u.Roles)
+             .WithMany()
+             .UsingEntity(j => j.ToTable("user_roles"));
+
+            e.HasQueryFilter(u => u.TenantId == TenantContext.CurrentTenantId);
         });
 
-        /* … mapeos ya existentes (Publishing, Profiles, IAM) … */
-
+        // Global naming convention (snake_case + pluralization)
         builder.UseSnakeCaseNamingConvention();
     }
-
-    /* DbSet propiedades opcionales para LINQ */
-    public DbSet<Plant> Plants             => Set<Plant>();
-    public DbSet<ProductionLine> Lines     => Set<ProductionLine>();
-    public DbSet<Machinery> Machineries    => Set<Machinery>();
 }

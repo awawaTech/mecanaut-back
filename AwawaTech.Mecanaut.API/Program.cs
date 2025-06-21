@@ -1,27 +1,44 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.OutboundServices;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.IAM.Domain.Repositories;
+using AwawaTech.Mecanaut.API.IAM.Domain.Services;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Hashing.BCrypt.Services;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Pipeline.Middleware.Extensions;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Tokens.JWT.Configuration;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Tokens.JWT.Services;
+using AwawaTech.Mecanaut.API.IAM.Interfaces.ACL;
+using AwawaTech.Mecanaut.API.IAM.Interfaces.ACL.Services;
+using AwawaTech.Mecanaut.API.Shared.Domain.Repositories;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Interfaces.ASP.Configuration;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
-
-// ───── AssetManagement usings ─────
-using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
-using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.CommandServices;
-using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.QueryServices;
-using AwawaTech.Mecanaut.API.AssetManagement.Application.ACL;
-using AwawaTech.Mecanaut.API.AssetManagement.Domain.Repositories;
-using AwawaTech.Mecanaut.API.AssetManagement.Domain.Services;
-using AwawaTech.Mecanaut.API.Shared.Domain.Repositories;
-using AwawaTech.Mecanaut.API.Shared.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Repositories;
-using AwawaTech.Mecanaut.API.AssetManagement.Interfaces.ACL;
-using AwawaTech.Mecanaut.API.Shared.Infrastructure.Tenancy;
-
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Multitenancy;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Interfaces.ASP.Middleware;
+using Microsoft.Extensions.Hosting;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.EventHandlers;
+using AwawaTech.Mecanaut.API.Shared.Domain.Events;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.DomainEvents;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ───────────── Controllers & routing ─────────────
 builder.Services.AddRouting(o => o.LowercaseUrls = true);
 builder.Services.AddControllers(o => o.Conventions.Add(new KebabCaseRouteNamingConvention()));
+
+// ───────────── Autenticación "passthrough" ─────────────
+builder.Services.AddAuthentication("Custom")
+       .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
+                 AwawaTech.Mecanaut.API.IAM.Infrastructure.Authorization.PassthroughAuthenticationHandler>
+                 ("Custom", _ => { });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", p => p.RequireRole("RoleAdmin"));
+});
 
 // ───────────── CORS ─────────────
 builder.Services.AddCors(options =>
@@ -91,36 +108,37 @@ builder.Services.AddSwaggerGen(options =>
     options.EnableAnnotations();
 });
 
-// ───────────── Dependency Injection ─────────────
+// Dependency Injection
 
-// HttpContext accessor (for TenantProvider)
-builder.Services.AddHttpContextAccessor();
-
-// Tenant Provider
-builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>(); // implement HttpTenantProvider elsewhere
-
-// Repositories
-builder.Services.AddScoped<IPlantRepository, PlantRepository>();
-builder.Services.AddScoped<IProductionLineRepository, ProductionLineRepository>();
-builder.Services.AddScoped<IMachineryRepository, MachineryRepository>();
-
-// Unit-of-Work
+// Shared Bounded Context
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddSingleton<TenantContextHelper>();
 
-// Application Services
-builder.Services.AddScoped<IPlantCommandService, PlantCommandService>();
-builder.Services.AddScoped<IPlantQueryService, PlantQueryService>();
-builder.Services.AddScoped<IProductionLineCommandService, ProductionLineCommandService>();
-builder.Services.AddScoped<IProductionLineQueryService, ProductionLineQueryService>();
-builder.Services.AddScoped<IMachineryCommandService, MachineryCommandService>();
-builder.Services.AddScoped<IMachineryQueryService, MachineryQueryService>();
+// Publishing Bounded Context
 
-// ACL Facade
-builder.Services.AddScoped<IAssetManagementContextFacade, AssetManagementContextFacade>();
+// Profiles Bounded Context Dependency Injection Configuration
 
-// ───── (Other BC dependency registrations go here) ─────
+// IAM Bounded Context Injection Configuration
 
-// ───────────── Build & DB ensure ─────────────
+// TokenSettings Configuration
+
+builder.Services.Configure<TokenSettings>(builder.Configuration.GetSection("TokenSettings"));
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserCommandService, UserCommandService>();
+builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IHashingService, HashingService>();
+builder.Services.AddScoped<IIamContextFacade, IamContextFacade>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<IRoleCommandService, RoleCommandService>();
+builder.Services.AddScoped<IRoleQueryService, RoleQueryService>();
+builder.Services.AddScoped<ITenantCommandService, TenantCommandService>();
+builder.Services.AddScoped<ITenantQueryService, TenantQueryService>();
+builder.Services.AddHostedService<SeedRolesHostedService>();
+// ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -137,7 +155,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAllPolicy");
+
+// Habilita el enrutamiento para que el endpoint esté disponible en middlewares anteriores
+app.UseRouting();
+
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
 app.UseHttpsRedirection();
+app.UseRequestAuthorization();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
