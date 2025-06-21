@@ -45,13 +45,13 @@ public class RequestAuthorizationMiddleware(RequestDelegate next)
 
 
         // if token is null then throw exception
-        if (token == null) throw new Exception("Null or invalid token");
+        if (token == null) throw new UnauthorizedAccessException("El encabezado Authorization es obligatorio.");
 
         // validate token
         var claims = await tokenService.ValidateToken(token);
 
         // if token is invalid then throw exception
-        if (claims == null) throw new Exception("Invalid token");
+        if (claims == null) throw new UnauthorizedAccessException("Token inválido o expirado.");
 
         var (userId, tenantId) = claims.Value;
 

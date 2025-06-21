@@ -2,11 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
 
-public readonly struct Location
+public sealed class Location
 {
-    public string Address { get; }
-    public string City { get; }
-    public string Country { get; }
+    public string Address { get; private set; } = null!;
+    public string City    { get; private set; } = null!;
+    public string Country { get; private set; } = null!;
 
     public Location(string address, string city, string country)
     {
@@ -17,6 +17,9 @@ public readonly struct Location
         City     = city;
         Country  = country;
     }
+
+    // Parameterless constructor required by EF Core
+    protected Location() { }
 
     public override string ToString() => $"{Address}, {City}, {Country}";
 } 

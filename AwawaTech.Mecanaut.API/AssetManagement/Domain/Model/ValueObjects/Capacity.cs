@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
 
-public readonly struct Capacity
+public sealed class Capacity
 {
-    public double UnitsPerHour { get; }
+    public double UnitsPerHour { get; private set; }
 
     public Capacity(double unitsPerHour)
     {
@@ -16,4 +16,6 @@ public readonly struct Capacity
     public bool IsValid() => UnitsPerHour > 0;
 
     public override string ToString() => $"{UnitsPerHour} u/h";
+
+    protected Capacity() { }
 } 
