@@ -1,9 +1,9 @@
 namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
 
-public readonly struct MaintenanceInfo
+public sealed class MaintenanceInfo
 {
-    public DateTime? LastMaintenance { get; }
-    public DateTime? NextMaintenance { get; }
+    public DateTime? LastMaintenance { get; private set; }
+    public DateTime? NextMaintenance { get; private set; }
 
     private MaintenanceInfo(DateTime? last, DateTime? next)
     {
@@ -27,4 +27,6 @@ public readonly struct MaintenanceInfo
     public bool IsMaintenanceDue() => NextMaintenance.HasValue && DateTime.UtcNow >= NextMaintenance.Value;
 
     public override string ToString() => $"Last: {LastMaintenance?.ToShortDateString() ?? "-"}, Next: {NextMaintenance?.ToShortDateString() ?? "-"}";
+
+    protected MaintenanceInfo() { }
 } 

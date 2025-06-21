@@ -2,21 +2,26 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
 
-public readonly struct MachineSpecs
+public sealed class MachineSpecs
 {
-    public string Brand { get; }
-    public string Model { get; }
-    public double PowerKw { get; }
+    public string Manufacturer     { get; private set; } = null!;
+    public string Model            { get; private set; } = null!;
+    public string Type             { get; private set; } = null!;
+    public double PowerConsumption { get; private set; }
 
-    public MachineSpecs(string brand, string model, double powerKw)
+    public MachineSpecs(string manufacturer, string model, string type, double powerConsumption)
     {
-        if (string.IsNullOrWhiteSpace(brand)) throw new ValidationException("Brand required");
+        if (string.IsNullOrWhiteSpace(manufacturer)) throw new ValidationException("Manufacturer required");
         if (string.IsNullOrWhiteSpace(model)) throw new ValidationException("Model required");
-        if (powerKw <= 0) throw new ValidationException("Power must be positive");
-        Brand    = brand;
-        Model    = model;
-        PowerKw  = powerKw;
+        if (string.IsNullOrWhiteSpace(type))  throw new ValidationException("Type required");
+        if (powerConsumption <= 0) throw new ValidationException("Power must be positive");
+        Manufacturer     = manufacturer;
+        Model            = model;
+        Type             = type;
+        PowerConsumption = powerConsumption;
     }
 
-    public override string ToString() => $"{Brand} {Model} ({PowerKw} kW)";
+    protected MachineSpecs() { }
+
+    public override string ToString() => $"{Manufacturer} {Model} {Type} ({PowerConsumption} kW)";
 } 

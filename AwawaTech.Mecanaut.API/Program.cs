@@ -22,12 +22,35 @@ using Microsoft.Extensions.Hosting;
 using AwawaTech.Mecanaut.API.IAM.Application.Internal.EventHandlers;
 using AwawaTech.Mecanaut.API.Shared.Domain.Events;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.DomainEvents;
+using AwawaTech.Mecanaut.API.AssetManagement.Domain.Repositories;
+using AwawaTech.Mecanaut.API.AssetManagement.Domain.Services;
+using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Interfaces.ASP.Filters;
+using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.Competency.Domain.Repositories;
+using AwawaTech.Mecanaut.API.Competency.Domain.Services;
+using AwawaTech.Mecanaut.API.Competency.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.Competency.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.Competency.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Domain.Repositories;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Domain.Services;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Infrastructure.OutboundServices;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.EventHandlers;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.OutboundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ───────────── Controllers & routing ─────────────
 builder.Services.AddRouting(o => o.LowercaseUrls = true);
-builder.Services.AddControllers(o => o.Conventions.Add(new KebabCaseRouteNamingConvention()));
+builder.Services.AddControllers(o =>
+{
+    o.Conventions.Add(new KebabCaseRouteNamingConvention());
+    o.Filters.Add<ApiExceptionFilter>(); // Filtro global
+});
 
 // ───────────── Autenticación "passthrough" ─────────────
 builder.Services.AddAuthentication("Custom")
@@ -113,9 +136,28 @@ builder.Services.AddSwaggerGen(options =>
 // Shared Bounded Context
 builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ApiExceptionFilter>();
 builder.Services.AddSingleton<TenantContextHelper>();
 
 // Publishing Bounded Context
+// AssetManagement Bounded Context DI
+builder.Services.AddScoped<IPlantRepository, PlantRepository>();
+builder.Services.AddScoped<IProductionLineRepository, ProductionLineRepository>();
+builder.Services.AddScoped<IMachineRepository, MachineRepository>();
+
+builder.Services.AddScoped<IPlantCommandService, PlantCommandService>();
+builder.Services.AddScoped<IPlantQueryService, PlantQueryService>();
+
+builder.Services.AddScoped<IProductionLineCommandService, ProductionLineCommandService>();
+builder.Services.AddScoped<IProductionLineQueryService, ProductionLineQueryService>();
+
+builder.Services.AddScoped<IMachineCommandService, MachineCommandService>();
+builder.Services.AddScoped<IMachineQueryService, MachineQueryService>();
+
+// Competency Bounded Context
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ISkillCommandService, SkillCommandService>();
+builder.Services.AddScoped<ISkillQueryService, SkillQueryService>();
 
 // Profiles Bounded Context Dependency Injection Configuration
 
@@ -138,6 +180,21 @@ builder.Services.AddScoped<IRoleQueryService, RoleQueryService>();
 builder.Services.AddScoped<ITenantCommandService, TenantCommandService>();
 builder.Services.AddScoped<ITenantQueryService, TenantQueryService>();
 builder.Services.AddHostedService<SeedRolesHostedService>();
+
+// ConditionMonitoring Bounded Context
+builder.Services.AddScoped<IMachineMetricsRepository, MachineMetricsRepository>();
+builder.Services.AddScoped<IMetricDefinitionRepository, MetricDefinitionRepository>();
+builder.Services.AddScoped<IMetricReadingRepository, MetricReadingRepository>();
+
+builder.Services.AddScoped<IMachineMetricsCommandService, MachineMetricsCommandService>();
+builder.Services.AddScoped<IMetricDefinitionCommandService, MetricDefinitionCommandService>();
+builder.Services.AddScoped<IMachineMetricsQueryService, MachineMetricsQueryService>();
+builder.Services.AddScoped<IMetricQueryService, MetricQueryService>();
+
+builder.Services.AddScoped<IMachineCatalogAcl, MachineCatalogAcl>();
+
+builder.Services.AddHostedService<MetricsSeedHostedService>();
+
 // ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();
 

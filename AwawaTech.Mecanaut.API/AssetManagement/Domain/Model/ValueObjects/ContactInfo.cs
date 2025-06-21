@@ -3,12 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
 
-public readonly struct ContactInfo
+public sealed class ContactInfo
 {
     private static readonly Regex EmailRegex = new("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", RegexOptions.Compiled);
 
-    public string Phone { get; }
-    public string Email { get; }
+    public string Phone { get; private set; } = null!;
+    public string Email { get; private set; } = null!;
 
     public ContactInfo(string phone, string email)
     {
@@ -17,6 +17,8 @@ public readonly struct ContactInfo
         Phone = phone;
         Email = email;
     }
+
+    protected ContactInfo() { }
 
     public override string ToString() => $"{Phone} / {Email}";
 } 
