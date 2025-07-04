@@ -16,6 +16,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
+using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.ValueObjects;
 namespace AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
 /// <summary>
@@ -259,7 +261,53 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
              .HasDatabaseName("idx_machine_metric_time");
         });
 
-        // Global naming convention (snake_case + pluralization)
+        // ------------------ InventoryManagement ------------------
+        builder.Entity<InventoryPart>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id)
+             .ValueGeneratedOnAdd()
+             .HasColumnName("inventory_part_id");
+            
+            e.Property(p => p.PartNumber).IsRequired();
+            e.Property(p => p.Name).IsRequired();
+            e.Property(p => p.Description);
+            
+            // Value Objects
+            e.Property(p => p.CurrentStock).HasColumnName("current_stock");
+            e.Property(p => p.MinimumStock).HasColumnName("min_stock");
+            e.Property(p => p.PlantId).HasColumnName("plant_id");
+            e.Property(p => p.UnitPrice)
+                .HasConversion(
+                    price => price.Amount,
+                    amount => new Money(amount, "PEN"))
+                .HasColumnName("unit_price");
+
+            e.HasIndex(p => new { p.PartNumber }).IsUnique();
+        });
+
+        builder.Entity<PurchaseOrder>(e =>
+        {
+            e.HasKey(po => po.Id);
+            e.Property(po => po.Id)
+             .ValueGeneratedOnAdd()
+             .HasColumnName("purchase_order_id");
+            
+            e.Property(po => po.OrderNumber).IsRequired();
+            e.Property(po => po.Status)
+             .HasConversion<string>()
+             .HasColumnName("status");
+            e.Property(po => po.OrderDate).HasColumnName("order_date");
+            e.Property(po => po.DeliveryDate).HasColumnName("delivery_date");
+            e.Property(po => po.TotalPrice)
+                .HasConversion(
+                    price => price.Amount,
+                    amount => new Money(amount, "PEN"))
+                .HasColumnName("total_price");
+            e.Property(po => po.PlantId).HasColumnName("plant_id");
+            
+        });
+
         builder.UseSnakeCaseNamingConvention();
     }
 
@@ -271,4 +319,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    public DbSet<MachineMetrics> MachineMetrics { get; set; } = null!;
    public DbSet<MetricDefinition> MetricDefinitions { get; set; } = null!;
    public DbSet<MetricReading> MetricReadings { get; set; } = null!;
+   public DbSet<InventoryPart> InventoryParts { get; set; } = null!;
+   public DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
 }
