@@ -46,6 +46,13 @@ using AwawaTech.Mecanaut.API.ConditionMonitoring.Infrastructure.Persistence.EFC.
 using AwawaTech.Mecanaut.API.ConditionMonitoring.Infrastructure.OutboundServices;
 using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.EventHandlers;
 using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.OutboundServices;
+using AwawaTech.Mecanaut.API.Subscription.Domain.Repositories;
+using AwawaTech.Mecanaut.API.Subscription.Domain.Services;
+using AwawaTech.Mecanaut.API.Subscription.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.Subscription.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.Subscription.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.Subscription.Application.Internal.EventHandlers;
+
 using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -200,6 +207,20 @@ builder.Services.AddScoped<IMetricQueryService, MetricQueryService>();
 builder.Services.AddScoped<IMachineCatalogAcl, MachineCatalogAcl>();
 
 builder.Services.AddHostedService<MetricsSeedHostedService>();
+
+
+
+// Repositorios
+builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+
+// Servicios de comando y consulta
+builder.Services.AddScoped<ISubscriptionPlanCommandService, SubscriptionPlanCommandService>();
+builder.Services.AddScoped<ISubscriptionPlanQueryService, SubscriptionPlanQueryService>();
+
+builder.Services.AddHostedService<SubscriptionPlansSeedHostedService>();
+
+// Registrar ACL de IAM
+builder.Services.AddScoped<ISubscriptionPlanAcl, SubscriptionPlanAcl>();
 
 // InventoryManagement Bounded Context
 builder.Services.AddScoped<IInventoryPartRepository, InventoryPartRepository>();

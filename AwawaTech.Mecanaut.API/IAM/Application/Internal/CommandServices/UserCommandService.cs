@@ -9,6 +9,7 @@ using AwawaTech.Mecanaut.API.IAM.Domain.Model.Entities;
 using AwawaTech.Mecanaut.API.IAM.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.Shared.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Multitenancy;
+using AwawaTech.Mecanaut.API.IAM.Interfaces.ACL;
 
 namespace AwawaTech.Mecanaut.API.IAM.Application.Internal.CommandServices;
 
@@ -26,6 +27,7 @@ public class UserCommandService(
     ITenantRepository tenantRepository,
     ITokenService tokenService,
     IHashingService hashingService,
+    ISubscriptionPlanAcl _subscriptionPlanAcl,
     IUnitOfWork unitOfWork)
     : IUserCommandService
 {
@@ -58,6 +60,10 @@ public class UserCommandService(
      */
     public async Task<User> Handle(SignUpCommand command)
     {
+        if (!await _subscriptionPlanAcl.ExistsByIdAsync(command.SubscriptionPlanId))
+            throw new InvalidOperationException("El plan de suscripción especificado no existe.");
+        // map roles
+        
         // 1) Crear Tenant
         var tenant = new Tenant(
             command.Ruc,
@@ -68,7 +74,9 @@ public class UserCommandService(
             command.Country,
             command.TenantPhone,
             command.TenantEmail,
-            command.Website);
+            command.Website,
+            command.SubscriptionPlanId
+            );
 
         await tenantRepository.AddAsync(tenant);
         // Persistimos el tenant para obtener su Id generado antes de crear el usuario admin
@@ -109,6 +117,12 @@ public class UserCommandService(
 
     public async Task<User> Handle(CreateUserCommand command)
     {
+        var tenantId = TenantContext.CurrentTenantId;
+        
+        var canAddUser = await CanAddAdminUser(tenantId);
+        if (!canAddUser)
+            throw new Exception("No puedes agregar más usuarios administradores, se ha alcanzado el límite del plan de suscripción.");
+        
         if (userRepository.ExistsByUsername(command.Username))
             throw new Exception($"Username {command.Username} is already taken");
 
@@ -116,8 +130,8 @@ public class UserCommandService(
         var user = new User(command.Username, hashed)
             .UpdatePersonalInfo(command.FirstName, command.LastName, new EmailAddress(command.Email))
             .SetTenant(TenantContext.CurrentTenantId);
-
-        // map roles
+        
+        
         var rolesToAssign = new List<Role>();
         if (command.Roles != null)
         {
@@ -171,4 +185,18 @@ public class UserCommandService(
         await unitOfWork.CompleteAsync();
         return user;
     }
+    
+    public async Task<bool> CanAddAdminUser(long tenantId)
+    {
+        // Llamar a la capa ACL para obtener el número máximo de usuarios
+        var maxUsers = await _subscriptionPlanAcl.GetMaxUsersByTenantId(tenantId);
+
+        // Obtener la cantidad de usuarios admin actuales
+        var currentAdminUserCount = await userRepository.GetAdminUserCountByTenantId(tenantId);
+
+        // Compara si se puede agregar un nuevo usuario admin
+        return currentAdminUserCount < maxUsers;
+    }
+
+    
 }

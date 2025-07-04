@@ -21,6 +21,7 @@ public record SignUpCommand(
     PhoneNumber? TenantPhone,
     EmailAddress TenantEmail,
     string? Website,
+    long SubscriptionPlanId,
 
     // Admin user data
     string Username,

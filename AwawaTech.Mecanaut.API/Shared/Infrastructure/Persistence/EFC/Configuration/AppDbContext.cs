@@ -16,6 +16,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
+using AwawaTech.Mecanaut.API.Subscription.Domain.Model.ValueObjects;
+using AwawaTech.Mecanaut.API.Subscription.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.ValueObjects;
 namespace AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
@@ -75,7 +77,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
             e.Property(t => t.Ruc).IsRequired();
             e.Property(t => t.LegalName).IsRequired();
             e.Property(t => t.Code).IsRequired();
-
+            
             // Email (value object as string)
             e.Property(t => t.Email)
              .HasConversion(
@@ -93,6 +95,8 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
              )
              .HasColumnName("phone_number")
              .HasMaxLength(25);
+            
+            e.Property(t => t.SubscriptionPlanId).IsRequired();
         });
 
         // Users
@@ -260,6 +264,35 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
             e.HasIndex(r => new { r.MachineId, r.MetricId, r.MeasuredAt })
              .HasDatabaseName("idx_machine_metric_time");
         });
+        
+        builder.Entity<SubscriptionPlan>(e =>
+        {
+            e.HasKey(sp => sp.Id);
+            e.Property(sp => sp.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("subscription_plan_id"); // Puedes personalizar el nombre de la columna
+
+            e.Property(sp => sp.Name).IsRequired();
+            e.Property(sp => sp.Description).IsRequired();
+            e.Property(sp => sp.Price).IsRequired();
+            e.Property(sp => sp.Currency).IsRequired();
+
+            // Configuración de los Value Objects
+            e.OwnsOne(sp => sp.Features, f =>
+            {
+                f.Property(v => v.MaxMachines).HasColumnName("max_machines");
+                f.Property(v => v.MaxUsers).HasColumnName("max_users");
+                f.Property(v => v.SupportPriority).HasColumnName("support_priority");
+                f.Property(v => v.PredictiveMaintenance).HasColumnName("predictive_maintenance");
+                f.Property(v => v.AdvancedAnalytics).HasColumnName("advanced_analytics");
+            });
+
+            // Configuración del estado del plan
+            e.Property(sp => sp.Status)
+                .HasConversion(v => v.Value, v => SubscriptionStatus.FromString(v))
+                .HasColumnName("status")
+                .IsRequired();
+        });
 
         // ------------------ InventoryManagement ------------------
         builder.Entity<InventoryPart>(e =>
@@ -319,6 +352,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    public DbSet<MachineMetrics> MachineMetrics { get; set; } = null!;
    public DbSet<MetricDefinition> MetricDefinitions { get; set; } = null!;
    public DbSet<MetricReading> MetricReadings { get; set; } = null!;
+   public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; } = null!;
    public DbSet<InventoryPart> InventoryParts { get; set; } = null!;
    public DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
 }

@@ -2,9 +2,9 @@
 /shelf/
 /workspace.xml
 # Rider ignored files
-/modules.xml
-/contentModel.xml
 /projectSettingsUpdater.xml
+/contentModel.xml
+/modules.xml
 /.idea.mecanaut-platform.iml
 # Editor-based HTTP Client requests
 /httpRequests/

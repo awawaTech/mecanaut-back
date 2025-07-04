@@ -11,6 +11,7 @@ public record SignUpResource(
     string? TenantPhone,
     string TenantEmail,
     string? Website,
+    long SubscriptionPlanId,
 
     // Admin user data
     string Username,
