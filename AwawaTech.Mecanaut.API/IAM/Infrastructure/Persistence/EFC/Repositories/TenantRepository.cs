@@ -14,4 +14,16 @@ public class TenantRepository(AppDbContext context)
         return await context.Set<Tenant>()
             .FirstOrDefaultAsync(t => t.Code == code);
     }
+    
+    public async Task<long> GetSubscriptionPlanIdByTenantId(long tenantId)
+    {
+        var tenant = await context.Set<Tenant>()
+            .Where(t => t.Id == tenantId)
+            .FirstOrDefaultAsync();
+
+        if (tenant == null)
+            throw new InvalidOperationException($"Tenant con ID {tenantId} no encontrado.");
+
+        return tenant.SubscriptionPlanId;
+    }
 } 

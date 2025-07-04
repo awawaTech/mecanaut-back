@@ -18,6 +18,7 @@ public static class SignUpCommandFromResourceAssembler
             string.IsNullOrWhiteSpace(resource.TenantPhone) ? null : new PhoneNumber(resource.TenantPhone),
             new EmailAddress(resource.TenantEmail),
             resource.Website,
+            resource.SubscriptionPlanId,
             resource.Username,
             resource.Password,
             new EmailAddress(resource.Email),

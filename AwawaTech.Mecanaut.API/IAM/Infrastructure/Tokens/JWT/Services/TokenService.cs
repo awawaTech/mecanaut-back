@@ -3,7 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using AwawaTech.Mecanaut.API.IAM.Application.Internal.OutboundServices;
 using AwawaTech.Mecanaut.API.IAM.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.IAM.Domain.Repositories;
 using AwawaTech.Mecanaut.API.IAM.Infrastructure.Tokens.JWT.Configuration;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Persistence.EFC.Repositories;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using AwawaTech.Mecanaut.API.IAM.Domain.Model.Entities;
@@ -20,9 +22,10 @@ namespace AwawaTech.Mecanaut.API.IAM.Infrastructure.Tokens.JWT.Services;
  *     This class is used to generate and validate tokens
  * </remarks>
  */
-public class TokenService(IOptions<TokenSettings> tokenSettings) : ITokenService
+public class TokenService(IOptions<TokenSettings> tokenSettings, ITenantRepository tenantRepository) : ITokenService
 {
     private readonly TokenSettings _tokenSettings = tokenSettings.Value;
+    private readonly ITenantRepository _tenantRepository;
 
     /**
      * <summary>
@@ -98,4 +101,7 @@ public class TokenService(IOptions<TokenSettings> tokenSettings) : ITokenService
             return null;
         }
     }
+    
+    // Método privado para obtener el subscriptionPlanId usando el tenantId.
+
 }

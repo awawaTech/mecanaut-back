@@ -19,12 +19,14 @@ public class Tenant : AuditableAggregateRoot
     public EmailAddress? Email { get; private set; }
     public string? Website { get; private set; }
     public bool Active { get; private set; }
+    public long SubscriptionPlanId { get; private set; }
 
     private Tenant() { }
 
     public Tenant(string ruc, string legalName, string? commercialName,
         string? address, string? city, string? country,
-        PhoneNumber? phone, EmailAddress? email, string? website)
+        PhoneNumber? phone, EmailAddress? email, string? website,
+        long subscriptionPlanId)
     {
         Active = true;
         Ruc = ruc;
@@ -37,6 +39,7 @@ public class Tenant : AuditableAggregateRoot
         PhoneNumber = phone;
         Email = email;
         Website = website;
+        SubscriptionPlanId = subscriptionPlanId;
     }
 
     private static string GenerateCodeFromRuc(string ruc)

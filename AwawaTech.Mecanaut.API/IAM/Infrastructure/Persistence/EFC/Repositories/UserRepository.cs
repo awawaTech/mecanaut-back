@@ -60,4 +60,15 @@ public class UserRepository(AppDbContext context) : BaseRepository<User>(context
                      .Include(u => u.Roles)
                      .ToListAsync();
     }
+    
+    public async Task<int> GetAdminUserCountByTenantId(long tenantId)
+    {
+        // Consultamos la tabla de usuarios y unimos con la tabla de user_roles
+        return await context.Set<User>()
+            .Where(u => u.TenantId == tenantId && u.Roles.Any(r => r.Id == 1)) // role_id = 1 es el admin
+            .CountAsync();
+    }
+
+
+
 }

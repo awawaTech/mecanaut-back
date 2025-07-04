@@ -30,4 +30,7 @@ public interface IUserRepository : IBaseRepository<User>
      * <returns>True if the user exists, false otherwise</returns>
      */
     bool ExistsByUsername(string username);
+
+    Task<int> GetAdminUserCountByTenantId(long tenantId);
+
 }
