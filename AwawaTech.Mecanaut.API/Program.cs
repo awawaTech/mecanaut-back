@@ -27,7 +27,12 @@ using AwawaTech.Mecanaut.API.AssetManagement.Domain.Services;
 using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.CommandServices;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Interfaces.ASP.Filters;
 using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.QueryServices;
-using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Repositories;
+using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Services;
+using AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.InventoryManagement.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST.Transform;
 using AwawaTech.Mecanaut.API.Competency.Domain.Repositories;
 using AwawaTech.Mecanaut.API.Competency.Domain.Services;
 using AwawaTech.Mecanaut.API.Competency.Application.Internal.CommandServices;
@@ -48,6 +53,7 @@ using AwawaTech.Mecanaut.API.Subscription.Application.Internal.QueryServices;
 using AwawaTech.Mecanaut.API.Subscription.Infrastructure.Persistence.EFC.Repositories;
 using AwawaTech.Mecanaut.API.Subscription.Application.Internal.EventHandlers;
 
+using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -215,6 +221,21 @@ builder.Services.AddHostedService<SubscriptionPlansSeedHostedService>();
 
 // Registrar ACL de IAM
 builder.Services.AddScoped<ISubscriptionPlanAcl, SubscriptionPlanAcl>();
+
+// InventoryManagement Bounded Context
+builder.Services.AddScoped<IInventoryPartRepository, InventoryPartRepository>();
+builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
+
+builder.Services.AddScoped<IInventoryPartCommandService, InventoryPartCommandService>();
+builder.Services.AddScoped<IInventoryPartQueryService, InventoryPartQueryService>();
+
+builder.Services.AddScoped<IPurchaseOrderCommandService, PurchaseOrderCommandService>();
+builder.Services.AddScoped<IPurchaseOrderQueryService, PurchaseOrderQueryService>();
+
+builder.Services.AddScoped<IInventoryPartResourceAssembler, InventoryPartResourceAssembler>();
+builder.Services.AddScoped<IPurchaseOrderResourceAssembler, PurchaseOrderResourceAssembler>();
+builder.Services.AddScoped<UpdateInventoryPartCommandFromResourceAssembler>();
+
 
 // ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();
