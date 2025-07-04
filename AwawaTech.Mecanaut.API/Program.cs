@@ -203,8 +203,16 @@ builder.Services.AddHostedService<SeedRolesHostedService>();
 // ConditionMonitoring Bounded Context
 builder.Services.AddScoped<IMachineMetricsRepository, MachineMetricsRepository>();
 builder.Services.AddScoped<IMetricDefinitionRepository, MetricDefinitionRepository>();
+builder.Services.AddScoped<IMetricReadingRepository, MetricReadingRepository>();
 
+builder.Services.AddScoped<IMachineMetricsCommandService, MachineMetricsCommandService>();
+builder.Services.AddScoped<IMetricDefinitionCommandService, MetricDefinitionCommandService>();
+builder.Services.AddScoped<IMachineMetricsQueryService, MachineMetricsQueryService>();
+builder.Services.AddScoped<IMetricQueryService, MetricQueryService>();
 
+builder.Services.AddScoped<IMachineCatalogAcl, MachineCatalogAcl>();
+
+builder.Services.AddHostedService<MetricsSeedHostedService>();
 
 // Repositorios
 builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
@@ -231,6 +239,8 @@ builder.Services.AddScoped<IPurchaseOrderQueryService, PurchaseOrderQueryService
 builder.Services.AddScoped<IInventoryPartResourceAssembler, InventoryPartResourceAssembler>();
 builder.Services.AddScoped<IPurchaseOrderResourceAssembler, PurchaseOrderResourceAssembler>();
 builder.Services.AddScoped<UpdateInventoryPartCommandFromResourceAssembler>();
+
+
 
 // DynamicMaintenancePlanning Bounded Context
 builder.Services.AddScoped<IDynamicMaintenancePlanRepository, DynamicMaintenancePlanRepository>();

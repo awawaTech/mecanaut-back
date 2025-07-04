@@ -16,27 +16,28 @@ public class Machine : AuditableAggregateRoot
     public MachineStatusEnum Status { get; private set; }
     public MaintenanceInfo MaintenanceInfo { get; private set; }
     
-    public long? PlantId { get; private set; }
+    public long PlantId { get; private set; }
     
     public long? ProductionLineId { get; private set; }
     public TenantId TenantId { get; private set; }
 
-    private Machine(string serial, string name, MachineSpecs specs, TenantId tenantId)
+    private Machine(string serial, string name, MachineSpecs specs, long plantId, TenantId tenantId)
     {
         ValidateSerial(serial);
         ValidateName(name);
         SerialNumber  = serial;
         Name          = name;
         Specs         = specs;
-        TenantId      = tenantId;
+        PlantId        = plantId;
+        TenantId = tenantId;
         Status        = MachineStatusEnum.Operational;
         MaintenanceInfo = MaintenanceInfo.CreateNew();
     }
 
     protected Machine() { }
 
-    public static Machine Create(string serial, string name, MachineSpecs specs, TenantId tenantId)
-        => new(serial, name, specs, tenantId);
+    public static Machine Create(string serial, string name, MachineSpecs specs, long plantId, TenantId tenantId)
+        => new(serial, name, specs, plantId, tenantId);
 
     /* ---- Behaviour ---- */
     public void AssignToProductionLine(long productionLineId)

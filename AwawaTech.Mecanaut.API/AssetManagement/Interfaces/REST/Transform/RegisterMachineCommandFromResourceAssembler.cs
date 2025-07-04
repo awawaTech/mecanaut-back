@@ -8,7 +8,7 @@ public static class RegisterMachineCommandFromResourceAssembler
 {
     public static RegisterMachineCommand ToCommandFromResource(RegisterMachineResource resource)
         => new(resource.SerialNumber,
-               resource.Name,
+               resource.Name,resource.PlantId,
                new MachineSpecs(resource.Manufacturer,
                                 resource.Model,
                                 resource.Type,

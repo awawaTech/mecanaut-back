@@ -184,6 +184,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
              .HasColumnName("machine_id");
             e.Property(m => m.SerialNumber).IsRequired();
             e.Property(m => m.Name).IsRequired();
+            e.Property(m => m.PlantId).IsRequired();
             e.HasIndex(m => m.SerialNumber).IsUnique();
 
             e.OwnsOne(m => m.Specs, s =>
@@ -267,6 +268,9 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
             e.HasIndex(r => new { r.MachineId, r.MetricId, r.MeasuredAt })
              .HasDatabaseName("idx_machine_metric_time");
         });
+        
+        
+        // ------------------ SubscriptionPlan ------------------
         
         builder.Entity<SubscriptionPlan>(e =>
         {

@@ -78,15 +78,16 @@ public class DynamicMaintenancePlansController : ControllerBase
         if (resource == null)
             return BadRequest("Invalid body.");
 
+        // Aquí se utiliza el assembler para convertir el resource en un comando
         var command = _fromResourceAssembler.ToCommand(resource);
+    
+        // Llamamos al servicio de comando para crear el plan
         var plan = await _commandService.CreateAsync(command);
-        
-        //Console.WriteLine($"Plan ID: {plan.Id}");
-        
+    
+        // Usamos el assembler de detalles para convertir el plan en un recurso para la respuesta
         var resultResource = _toResourceAssembler.ToResource(plan);
 
-        Console.WriteLine($"Plan ID: {plan.Id}");
-        // CreatedAtAction apunta al GetByIdAsync para devolver la URL correcta
+        // Devolvemos el resultado con el status Created
         return Ok(resultResource);
     }
 }
