@@ -8,5 +8,6 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Domain.Services
     {
         Task<InventoryPart> Handle(CreateInventoryPartCommand command);
         Task<InventoryPart> Handle(UpdateInventoryPartCommand command);
+        Task<InventoryPart> Handle(DeleteInventoryPartCommand command);
     }
 } 

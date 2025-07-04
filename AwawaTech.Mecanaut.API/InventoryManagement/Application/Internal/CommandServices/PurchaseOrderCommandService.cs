@@ -37,10 +37,34 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.Comman
             return order;
         }
 
+        public async Task<PurchaseOrder> Handle(CompletePurchaseOrderCommand command)
+        {
+            var order = await _repository.FindByIdAsync(command.Id);
+            if (order == null)
+                throw new ArgumentException($"Purchase order with ID {command.Id} not found.");
+
+            order.Complete(DateTime.UtcNow);
+            await _unitOfWork.CompleteAsync();
+
+            return order;
+        }
+
         public async Task<PurchaseOrder> Handle(UpdatePurchaseOrderCommand command)
         {
             // Implementación
             throw new System.NotImplementedException();
+        }
+
+        public async Task<PurchaseOrder> Handle(DeletePurchaseOrderCommand command)
+        {
+            var order = await _repository.FindByIdAsync(command.Id);
+            if (order == null)
+                throw new ArgumentException($"PurchaseOrder with ID {command.Id} not found.");
+
+            _repository.Remove(order);
+            await _unitOfWork.CompleteAsync();
+
+            return order;
         }
     }
 } 

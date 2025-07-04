@@ -23,8 +23,7 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.QueryS
 
         public async Task<InventoryPart> Handle(GetInventoryPartByIdQuery query)
         {
-            // Implementación
-            throw new System.NotImplementedException();
+            return await _repository.FindByIdAsync(query.Id);
         }
 
         public async Task<IEnumerable<InventoryPart>> Handle(GetInventoryPartsByPlantIdQuery query)

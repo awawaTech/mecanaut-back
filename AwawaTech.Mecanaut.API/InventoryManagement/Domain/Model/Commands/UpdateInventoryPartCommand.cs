@@ -3,10 +3,10 @@ using System;
 namespace AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.Commands
 {
     public record UpdateInventoryPartCommand(
-        Guid Id,
-        string Name,
-        string Description,
-        int MinStock,
-        decimal UnitPrice
+        long Id,
+        string? Description = null,
+        int? CurrentStock = null,
+        int? MinStock = null,
+        decimal? UnitPrice = null
     );
 } 

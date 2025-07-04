@@ -8,5 +8,7 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Domain.Services
     {
         Task<PurchaseOrder> Handle(CreatePurchaseOrderCommand command);
         Task<PurchaseOrder> Handle(UpdatePurchaseOrderCommand command);
+        Task<PurchaseOrder> Handle(CompletePurchaseOrderCommand command);
+        Task<PurchaseOrder> Handle(DeletePurchaseOrderCommand command);
     }
 } 

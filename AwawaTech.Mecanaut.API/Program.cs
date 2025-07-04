@@ -213,6 +213,8 @@ builder.Services.AddScoped<IPurchaseOrderQueryService, PurchaseOrderQueryService
 
 builder.Services.AddScoped<IInventoryPartResourceAssembler, InventoryPartResourceAssembler>();
 builder.Services.AddScoped<IPurchaseOrderResourceAssembler, PurchaseOrderResourceAssembler>();
+builder.Services.AddScoped<UpdateInventoryPartCommandFromResourceAssembler>();
+
 
 // ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();

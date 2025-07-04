@@ -21,15 +21,18 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST
         private readonly IInventoryPartCommandService _commandService;
         private readonly IInventoryPartQueryService _queryService;
         private readonly IInventoryPartResourceAssembler _resourceAssembler;
+        private readonly UpdateInventoryPartCommandFromResourceAssembler _updateAssembler;
 
         public InventoryPartsController(
             IInventoryPartCommandService commandService,
             IInventoryPartQueryService queryService,
-            IInventoryPartResourceAssembler resourceAssembler)
+            IInventoryPartResourceAssembler resourceAssembler,
+            UpdateInventoryPartCommandFromResourceAssembler updateAssembler)
         {
             _commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
             _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
             _resourceAssembler = resourceAssembler ?? throw new ArgumentNullException(nameof(resourceAssembler));
+            _updateAssembler = updateAssembler ?? throw new ArgumentNullException(nameof(updateAssembler));
         }
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST
             // Intentar primero como GUID
             if (Guid.TryParse(id, out var guidId))
             {
-                var part = await _queryService.Handle(new GetInventoryPartByIdQuery(guidId));
+                var part = await _queryService.Handle(new GetInventoryPartByIdQuery(long.Parse(id)));
                 if (part != null)
                 {
                     return Ok(_resourceAssembler.ToResource(part));
@@ -101,6 +104,7 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST
         /// <summary>
         /// Obtiene todas las partes del inventario por PlantId
         /// </summary>
+        /*
         [HttpGet("by-plant/{plantId}")]
         [ProducesResponseType(typeof(IEnumerable<InventoryPartResource>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<InventoryPartResource>>> GetByPlantId(long plantId)
@@ -108,6 +112,49 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST
             var parts = await _queryService.Handle(new GetInventoryPartsByPlantIdQuery(plantId));
             var resources = _resourceAssembler.ToResource(parts);
             return Ok(resources);
+        }*/
+
+        /// <summary>
+        /// Actualiza una parte del inventario existente
+        /// </summary>
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(InventoryPartResource), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<InventoryPartResource>> UpdateInventoryPart(string id, [FromBody] UpdateInventoryPartResource resource)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!long.TryParse(id, out var longId))
+                return BadRequest(new { message = "Invalid ID format. Must be a number." });
+
+            // Verificar si existe la parte
+            var existingPart = await _queryService.Handle(new GetInventoryPartByIdQuery(longId));
+            if (existingPart == null)
+                return NotFound(new { message = $"InventoryPart with ID {id} not found." });
+
+            var command = _updateAssembler.ToCommand(longId, resource);
+            var result = await _commandService.Handle(command);
+            var resourceResult = _resourceAssembler.ToResource(result);
+            
+            return Ok(resourceResult);
+        }
+
+        /// <summary>
+        /// Elimina una parte del inventario por su ID
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteInventoryPart(long id)
+        {
+            var part = await _queryService.Handle(new GetInventoryPartByIdQuery(id));
+            if (part == null)
+                return NotFound(new { message = $"InventoryPart with ID {id} not found." });
+
+            await _commandService.Handle(new DeleteInventoryPartCommand(id));
+            return NoContent();
         }
     }
 } 

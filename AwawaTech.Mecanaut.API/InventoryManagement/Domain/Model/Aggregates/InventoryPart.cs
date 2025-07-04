@@ -57,6 +57,15 @@ public class InventoryPart : AuditableAggregateRoot
         AddDomainEvent(new InventoryPartUpdatedEvent(Id));
     }
 
+    public void UpdatePrice(Money newPrice)
+    {
+        if (newPrice.Amount < 0)
+            throw new ArgumentException("Price cannot be negative");
+            
+        UnitPrice = newPrice;
+        AddDomainEvent(new InventoryPartUpdatedEvent(Id));
+    }
+
     /* ---- Validation ---- */
     private static void ValidatePartNumber(string partNumber)
     {

@@ -88,5 +88,45 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST
             var responseResource = _resourceAssembler.ToResource(result);
             return CreatedAtAction(nameof(GetPurchaseOrderById), new { id = responseResource.Id }, responseResource);
         }
+
+        /// <summary>
+        /// Marca una orden de compra como completada
+        /// </summary>
+        [HttpPatch("{id}/complete")]
+        [ProducesResponseType(typeof(PurchaseOrderResource), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PurchaseOrderResource>> CompletePurchaseOrder(long id)
+        {
+            try
+            {
+                var result = await _commandService.Handle(new CompletePurchaseOrderCommand(id));
+                return Ok(_resourceAssembler.ToResource(result));
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Elimina una orden de compra por su ID
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeletePurchaseOrder(long id)
+        {
+            var order = await _queryService.Handle(new GetPurchaseOrderByIdQuery(id));
+            if (order == null)
+                return NotFound(new { message = $"PurchaseOrder with ID {id} not found." });
+
+            await _commandService.Handle(new DeletePurchaseOrderCommand(id));
+            return NoContent();
+        }
     }
 } 

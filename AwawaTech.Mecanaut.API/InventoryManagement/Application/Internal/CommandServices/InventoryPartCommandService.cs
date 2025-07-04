@@ -40,8 +40,33 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.Comman
 
         public async Task<InventoryPart> Handle(UpdateInventoryPartCommand command)
         {
-            // Implementación
-            throw new System.NotImplementedException();
+            var part = await _repository.FindByIdAsync(command.Id);
+            if (part == null)
+                throw new ArgumentException($"InventoryPart with ID {command.Id} not found.");
+
+            if (command.Description != null)
+                part.UpdateInfo(part.Name, command.Description, command.MinStock ?? part.MinimumStock);
+
+            if (command.CurrentStock.HasValue)
+                part.UpdateStock(command.CurrentStock.Value);
+
+            if (command.UnitPrice.HasValue)
+                part.UpdatePrice(new Money(command.UnitPrice.Value));
+
+            await _unitOfWork.CompleteAsync();
+            return part;
+        }
+
+        public async Task<InventoryPart> Handle(DeleteInventoryPartCommand command)
+        {
+            var part = await _repository.FindByIdAsync(command.Id);
+            if (part == null)
+                throw new ArgumentException($"InventoryPart with ID {command.Id} not found.");
+
+            _repository.Remove(part);
+            await _unitOfWork.CompleteAsync();
+
+            return part;
         }
     }
 } 
