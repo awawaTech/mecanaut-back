@@ -20,6 +20,9 @@ using AwawaTech.Mecanaut.API.Subscription.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.Subscription.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.ValueObjects;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Entities;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.ValueObjects;
 namespace AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
 /// <summary>
@@ -341,6 +344,80 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
             
         });
 
+        // ------------------ DynamicMaintenancePlanning ------------------
+        builder.Entity<DynamicMaintenancePlan>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id)
+             .ValueGeneratedOnAdd()
+             .HasColumnName("dynamic_maintenance_plan_id");
+            
+            e.Property(p => p.Name)
+             .IsRequired()
+             .HasMaxLength(100);
+            
+            e.Property(p => p.MetricId)
+             .IsRequired()
+             .HasColumnName("metric_id");
+
+            e.Property(p => p.Status)
+             .IsRequired()
+             .HasConversion<string>()
+             .HasColumnName("status");
+
+            e.Property(p => p.TenantId)
+             .HasConversion(v => v.Value, v => new TenantId(v))
+             .HasColumnName("tenant_id");
+
+            // Índice único para nombre por tenant
+            e.HasIndex(p => new { p.Name, p.TenantId }).IsUnique();
+        });
+
+        builder.Entity<DynamicMaintenancePlanMachine>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("d_plan_machine_id");
+    
+            e.Property(pm => pm.PlanId)
+                .HasColumnName("plan_id");
+    
+            e.Property(pm => pm.MachineId)
+                .HasColumnName("machine_id");
+
+            // Relación con el plan
+            e.HasOne<DynamicMaintenancePlan>()
+                .WithMany()
+                .HasForeignKey(pm => pm.PlanId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_DynamicMaintenancePlanMachine_Plan");  // Nombre corto para el constraint
+        });
+
+
+        builder.Entity<DynamicMaintenancePlanTask>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("d_plan_task_id");
+    
+            e.Property(pt => pt.PlanId)
+                .HasColumnName("plan_id");
+    
+            e.Property(pt => pt.TaskDescription)
+                .IsRequired()
+                .HasMaxLength(500)
+                .HasColumnName("task_description");
+            
+            e.HasOne<DynamicMaintenancePlan>()
+                .WithMany()
+                .HasForeignKey(pt => pt.PlanId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_DynamicMaintenancePlanTask_Plan"); // Nombre corto para el constraint
+        });
+
+
         builder.UseSnakeCaseNamingConvention();
     }
 
@@ -355,4 +432,9 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; } = null!;
    public DbSet<InventoryPart> InventoryParts { get; set; } = null!;
    public DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
+
+   // DbSet para DynamicMaintenancePlanning
+   public DbSet<DynamicMaintenancePlan> DynamicMaintenancePlans { get; set; } = null!;
+   public DbSet<DynamicMaintenancePlanMachine> DynamicMaintenancePlanMachines { get; set; } = null!;
+   public DbSet<DynamicMaintenancePlanTask> DynamicMaintenancePlanTasks { get; set; } = null!;
 }

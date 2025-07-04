@@ -15,6 +15,9 @@ public class Machine : AuditableAggregateRoot
     public MachineSpecs Specs { get; private set; }
     public MachineStatusEnum Status { get; private set; }
     public MaintenanceInfo MaintenanceInfo { get; private set; }
+    
+    public long? PlantId { get; private set; }
+    
     public long? ProductionLineId { get; private set; }
     public TenantId TenantId { get; private set; }
 

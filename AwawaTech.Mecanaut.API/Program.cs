@@ -54,6 +54,12 @@ using AwawaTech.Mecanaut.API.Subscription.Infrastructure.Persistence.EFC.Reposit
 using AwawaTech.Mecanaut.API.Subscription.Application.Internal.EventHandlers;
 
 using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Repositories;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Services;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST.Transform;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -197,16 +203,6 @@ builder.Services.AddHostedService<SeedRolesHostedService>();
 // ConditionMonitoring Bounded Context
 builder.Services.AddScoped<IMachineMetricsRepository, MachineMetricsRepository>();
 builder.Services.AddScoped<IMetricDefinitionRepository, MetricDefinitionRepository>();
-builder.Services.AddScoped<IMetricReadingRepository, MetricReadingRepository>();
-
-builder.Services.AddScoped<IMachineMetricsCommandService, MachineMetricsCommandService>();
-builder.Services.AddScoped<IMetricDefinitionCommandService, MetricDefinitionCommandService>();
-builder.Services.AddScoped<IMachineMetricsQueryService, MachineMetricsQueryService>();
-builder.Services.AddScoped<IMetricQueryService, MetricQueryService>();
-
-builder.Services.AddScoped<IMachineCatalogAcl, MachineCatalogAcl>();
-
-builder.Services.AddHostedService<MetricsSeedHostedService>();
 
 
 
@@ -236,6 +232,15 @@ builder.Services.AddScoped<IInventoryPartResourceAssembler, InventoryPartResourc
 builder.Services.AddScoped<IPurchaseOrderResourceAssembler, PurchaseOrderResourceAssembler>();
 builder.Services.AddScoped<UpdateInventoryPartCommandFromResourceAssembler>();
 
+// DynamicMaintenancePlanning Bounded Context
+builder.Services.AddScoped<IDynamicMaintenancePlanRepository, DynamicMaintenancePlanRepository>();
+builder.Services.AddScoped<IDynamicMaintenancePlanCommandService, DynamicMaintenancePlanCommandService>();
+builder.Services.AddScoped<IDynamicMaintenancePlanQueryService, DynamicMaintenancePlanQueryService>();
+
+//(9)
+builder.Services.AddScoped<DynamicMaintenancePlanToResourceAssembler>();
+builder.Services.AddScoped<SaveDynamicMaintenancePlanCommandFromResourceAssembler>();
+builder.Services.AddScoped<DynamicMaintenancePlanWithDetailsToResourceAssembler>();
 
 // ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();
