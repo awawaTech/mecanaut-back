@@ -1,27 +1,80 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.OutboundServices;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.IAM.Domain.Repositories;
+using AwawaTech.Mecanaut.API.IAM.Domain.Services;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Hashing.BCrypt.Services;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Pipeline.Middleware.Extensions;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Tokens.JWT.Configuration;
+using AwawaTech.Mecanaut.API.IAM.Infrastructure.Tokens.JWT.Services;
+using AwawaTech.Mecanaut.API.IAM.Interfaces.ACL;
+using AwawaTech.Mecanaut.API.IAM.Interfaces.ACL.Services;
+using AwawaTech.Mecanaut.API.Shared.Domain.Repositories;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Interfaces.ASP.Configuration;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
-
-// ───── AssetManagement usings ─────
-using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
-using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.CommandServices;
-using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.QueryServices;
-using AwawaTech.Mecanaut.API.AssetManagement.Application.ACL;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Multitenancy;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Interfaces.ASP.Middleware;
+using Microsoft.Extensions.Hosting;
+using AwawaTech.Mecanaut.API.IAM.Application.Internal.EventHandlers;
+using AwawaTech.Mecanaut.API.Shared.Domain.Events;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.DomainEvents;
 using AwawaTech.Mecanaut.API.AssetManagement.Domain.Repositories;
 using AwawaTech.Mecanaut.API.AssetManagement.Domain.Services;
-using AwawaTech.Mecanaut.API.Shared.Domain.Repositories;
-using AwawaTech.Mecanaut.API.Shared.Domain.Model.ValueObjects;
-using AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Repositories;
-using AwawaTech.Mecanaut.API.AssetManagement.Interfaces.ACL;
-using AwawaTech.Mecanaut.API.Shared.Infrastructure.Tenancy;
+using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Interfaces.ASP.Filters;
+using AwawaTech.Mecanaut.API.AssetManagement.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Repositories;
+using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Services;
+using AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.InventoryManagement.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST.Transform;
+using AwawaTech.Mecanaut.API.Competency.Domain.Repositories;
+using AwawaTech.Mecanaut.API.Competency.Domain.Services;
+using AwawaTech.Mecanaut.API.Competency.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.Competency.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.Competency.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Domain.Repositories;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Domain.Services;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Infrastructure.OutboundServices;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.EventHandlers;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.OutboundServices;
+using AwawaTech.Mecanaut.API.Subscription.Domain.Repositories;
+using AwawaTech.Mecanaut.API.Subscription.Domain.Services;
+using AwawaTech.Mecanaut.API.Subscription.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.Subscription.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.Subscription.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.Subscription.Application.Internal.EventHandlers;
 
+using AwawaTech.Mecanaut.API.AssetManagement.Infrastructure.Persistence.EFC.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ───────────── Controllers & routing ─────────────
 builder.Services.AddRouting(o => o.LowercaseUrls = true);
-builder.Services.AddControllers(o => o.Conventions.Add(new KebabCaseRouteNamingConvention()));
+builder.Services.AddControllers(o =>
+{
+    o.Conventions.Add(new KebabCaseRouteNamingConvention());
+    o.Filters.Add<ApiExceptionFilter>(); // Filtro global
+});
+
+// ───────────── Autenticación "passthrough" ─────────────
+builder.Services.AddAuthentication("Custom")
+       .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
+                 AwawaTech.Mecanaut.API.IAM.Infrastructure.Authorization.PassthroughAuthenticationHandler>
+                 ("Custom", _ => { });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", p => p.RequireRole("RoleAdmin"));
+});
 
 // ───────────── CORS ─────────────
 builder.Services.AddCors(options =>
@@ -91,36 +144,100 @@ builder.Services.AddSwaggerGen(options =>
     options.EnableAnnotations();
 });
 
-// ───────────── Dependency Injection ─────────────
+// Dependency Injection
 
-// HttpContext accessor (for TenantProvider)
-builder.Services.AddHttpContextAccessor();
+// Shared Bounded Context
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ApiExceptionFilter>();
+builder.Services.AddSingleton<TenantContextHelper>();
 
-// Tenant Provider
-builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>(); // implement HttpTenantProvider elsewhere
-
-// Repositories
+// Publishing Bounded Context
+// AssetManagement Bounded Context DI
 builder.Services.AddScoped<IPlantRepository, PlantRepository>();
 builder.Services.AddScoped<IProductionLineRepository, ProductionLineRepository>();
-builder.Services.AddScoped<IMachineryRepository, MachineryRepository>();
+builder.Services.AddScoped<IMachineRepository, MachineRepository>();
 
-// Unit-of-Work
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-// Application Services
 builder.Services.AddScoped<IPlantCommandService, PlantCommandService>();
 builder.Services.AddScoped<IPlantQueryService, PlantQueryService>();
+
 builder.Services.AddScoped<IProductionLineCommandService, ProductionLineCommandService>();
 builder.Services.AddScoped<IProductionLineQueryService, ProductionLineQueryService>();
-builder.Services.AddScoped<IMachineryCommandService, MachineryCommandService>();
-builder.Services.AddScoped<IMachineryQueryService, MachineryQueryService>();
 
-// ACL Facade
-builder.Services.AddScoped<IAssetManagementContextFacade, AssetManagementContextFacade>();
+builder.Services.AddScoped<IMachineCommandService, MachineCommandService>();
+builder.Services.AddScoped<IMachineQueryService, MachineQueryService>();
 
-// ───── (Other BC dependency registrations go here) ─────
+// Competency Bounded Context
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ISkillCommandService, SkillCommandService>();
+builder.Services.AddScoped<ISkillQueryService, SkillQueryService>();
 
-// ───────────── Build & DB ensure ─────────────
+// Profiles Bounded Context Dependency Injection Configuration
+
+// IAM Bounded Context Injection Configuration
+
+// TokenSettings Configuration
+
+builder.Services.Configure<TokenSettings>(builder.Configuration.GetSection("TokenSettings"));
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserCommandService, UserCommandService>();
+builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IHashingService, HashingService>();
+builder.Services.AddScoped<IIamContextFacade, IamContextFacade>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<IRoleCommandService, RoleCommandService>();
+builder.Services.AddScoped<IRoleQueryService, RoleQueryService>();
+builder.Services.AddScoped<ITenantCommandService, TenantCommandService>();
+builder.Services.AddScoped<ITenantQueryService, TenantQueryService>();
+builder.Services.AddHostedService<SeedRolesHostedService>();
+
+// ConditionMonitoring Bounded Context
+builder.Services.AddScoped<IMachineMetricsRepository, MachineMetricsRepository>();
+builder.Services.AddScoped<IMetricDefinitionRepository, MetricDefinitionRepository>();
+builder.Services.AddScoped<IMetricReadingRepository, MetricReadingRepository>();
+
+builder.Services.AddScoped<IMachineMetricsCommandService, MachineMetricsCommandService>();
+builder.Services.AddScoped<IMetricDefinitionCommandService, MetricDefinitionCommandService>();
+builder.Services.AddScoped<IMachineMetricsQueryService, MachineMetricsQueryService>();
+builder.Services.AddScoped<IMetricQueryService, MetricQueryService>();
+
+builder.Services.AddScoped<IMachineCatalogAcl, MachineCatalogAcl>();
+
+builder.Services.AddHostedService<MetricsSeedHostedService>();
+
+
+
+// Repositorios
+builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+
+// Servicios de comando y consulta
+builder.Services.AddScoped<ISubscriptionPlanCommandService, SubscriptionPlanCommandService>();
+builder.Services.AddScoped<ISubscriptionPlanQueryService, SubscriptionPlanQueryService>();
+
+builder.Services.AddHostedService<SubscriptionPlansSeedHostedService>();
+
+// Registrar ACL de IAM
+builder.Services.AddScoped<ISubscriptionPlanAcl, SubscriptionPlanAcl>();
+
+// InventoryManagement Bounded Context
+builder.Services.AddScoped<IInventoryPartRepository, InventoryPartRepository>();
+builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
+
+builder.Services.AddScoped<IInventoryPartCommandService, InventoryPartCommandService>();
+builder.Services.AddScoped<IInventoryPartQueryService, InventoryPartQueryService>();
+
+builder.Services.AddScoped<IPurchaseOrderCommandService, PurchaseOrderCommandService>();
+builder.Services.AddScoped<IPurchaseOrderQueryService, PurchaseOrderQueryService>();
+
+builder.Services.AddScoped<IInventoryPartResourceAssembler, InventoryPartResourceAssembler>();
+builder.Services.AddScoped<IPurchaseOrderResourceAssembler, PurchaseOrderResourceAssembler>();
+builder.Services.AddScoped<UpdateInventoryPartCommandFromResourceAssembler>();
+
+
+// ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -130,14 +247,22 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ───────────── HTTP pipeline ─────────────
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("AllowAllPolicy");
+
+// Habilita el enrutamiento para que el endpoint esté disponible en middlewares anteriores
+app.UseRouting();
+
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
 app.UseHttpsRedirection();
+// Aplicar autorización solo a rutas que no sean de Swagger
+app.UseWhen(
+    ctx => !ctx.Request.Path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase),
+    subApp => subApp.UseRequestAuthorization());
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

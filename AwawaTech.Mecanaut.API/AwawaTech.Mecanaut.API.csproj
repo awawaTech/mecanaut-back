@@ -40,6 +40,7 @@
 	  <Folder Include="AssetManagement\Domain\Repositories\" />
 	  <Folder Include="AssetManagement\Domain\Services\" />
 	  <Folder Include="AssetManagement\Application\" />
+	  <Folder Include="AssetManagement\Infrastructure\" />
 	</ItemGroup>
 
 </Project>

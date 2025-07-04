@@ -5,5 +5,7 @@ namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Services;
 
 public interface IProductionLineQueryService
 {
-    Task<IEnumerable<ProductionLine>> Handle(GetProductionLinesByPlantQuery query, CancellationToken ct = default);
-}
+    Task<IEnumerable<ProductionLine>> Handle(GetProductionLinesByPlantQuery query);
+    Task<ProductionLine?> Handle(GetProductionLineByIdQuery query);
+    Task<IEnumerable<ProductionLine>> Handle(GetRunningProductionLinesQuery query);
+} 

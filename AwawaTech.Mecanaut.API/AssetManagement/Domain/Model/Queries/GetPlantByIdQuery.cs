@@ -1,5 +1,3 @@
-using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.ValueObjects;
-
 namespace AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Queries;
 
-public record GetPlantByIdQuery(PlantId PlantId);
+public record GetPlantByIdQuery(long PlantId); 
