@@ -40,6 +40,12 @@ public class MachineQueryService : IMachineQueryService
         var tenantId = tenantHelper.GetCurrentTenantId();
         return await machineRepo.ListByProductionLineAsync(query.ProductionLineId, tenantId);
     }
+    
+    public async Task<IEnumerable<Machine>> Handle(GetMachinesByPlantIdQuery query)
+    {
+        var tenantId = tenantHelper.GetCurrentTenantId();
+        return await machineRepo.ListByPlantIdAsync(query.PlantId, tenantId);
+    }
 
     public async Task<Machine?> Handle(GetMachineByIdQuery query)
     {

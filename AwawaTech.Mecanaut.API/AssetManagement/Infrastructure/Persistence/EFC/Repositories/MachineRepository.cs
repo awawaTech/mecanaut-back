@@ -34,6 +34,9 @@ public class MachineRepository : BaseRepository<Machine>, IMachineRepository
     public async Task<IEnumerable<Machine>> ListByProductionLineAsync(long productionLineId, long tenantId)
         => await _context.Machines.Where(m => m.ProductionLineId == productionLineId && m.TenantId == new TenantId(tenantId)).ToListAsync();
 
+    public async Task<IEnumerable<Machine>> ListByPlantIdAsync(long plantId, long tenantId)
+        => await _context.Machines.Where(m => m.PlantId == plantId && m.TenantId == new TenantId(tenantId)).ToListAsync();
+
     public async Task<IEnumerable<Machine>> ListMaintenanceDueByTenantAsync(long tenantId)
         => await _context.Machines.Where(m => m.TenantId == new TenantId(tenantId) && m.MaintenanceInfo.NextMaintenance <= DateTime.UtcNow).ToListAsync();
 } 

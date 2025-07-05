@@ -25,6 +25,11 @@ using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Entities;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.ValueObjects;
+
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Model.Entities;
+
 namespace AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
 /// <summary>
@@ -476,6 +481,53 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
                  v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList()
              );
         });
+        
+        // ExecutedWorkOrder
+        builder.Entity<ExecutedWorkOrder>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Code).IsRequired();
+            e.Property(w => w.TenantId)
+                .HasConversion(v => v.Value,
+                    v => new TenantId(v))
+                .HasColumnName("tenant_id");
+            e.Property(x => x.ExecutionDate).IsRequired();
+            e.Property(x => x.ProductionLineId).IsRequired();
+    
+            e.Property(x => x.IntervenedMachineIds)
+                .HasConversion(
+                    v => string.Join(',', v),
+                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(long.Parse)
+                        .ToList());
+                
+            e.Property(x => x.AssignedTechnicianIds)
+                .HasConversion(
+                    v => string.Join(",", v.Select(id => id.HasValue ? id.Value.ToString() : "")),
+                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => string.IsNullOrEmpty(s) ? (long?)null : long.Parse(s))
+                        .ToList()
+                );
+                
+            e.Property(x => x.ExecutedTasks)
+                .HasConversion(
+                    v => string.Join('|', v),
+                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                        .ToList());
+        });
+
+        // UsedProduct
+        builder.Entity<UsedProduct>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.ExecutedWorkOrderId).IsRequired();
+            e.Property(x => x.ProductId).IsRequired();
+            e.Property(x => x.Quantity).IsRequired();
+    
+            e.HasOne<ExecutedWorkOrder>()
+                .WithMany()
+                .HasForeignKey(x => x.ExecutedWorkOrderId);
+        });
 
         builder.UseSnakeCaseNamingConvention();
     }
@@ -497,5 +549,9 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    public DbSet<DynamicMaintenancePlanMachine> DynamicMaintenancePlanMachines { get; set; } = null!;
    public DbSet<DynamicMaintenancePlanTask> DynamicMaintenancePlanTasks { get; set; } = null!;
 
+   //DbSet para ExecutionWorkOrders
+   
+   public DbSet<ExecutedWorkOrder> ExecutedWorkOrders { get; set; } = null!;
+   public DbSet<UsedProduct> UsedProducts { get; set; } = null!;
    public DbSet<WorkOrder> WorkOrders { get; set; } = null!;
 }

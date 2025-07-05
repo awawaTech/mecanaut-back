@@ -11,5 +11,6 @@ public interface IMachineRepository : IBaseRepository<Machine>
     Task<IEnumerable<Machine>> ListByTenantAsync(long tenantId);
     Task<IEnumerable<Machine>> ListAvailableByTenantAsync(long tenantId);
     Task<IEnumerable<Machine>> ListByProductionLineAsync(long productionLineId, long tenantId);
+    Task<IEnumerable<Machine>> ListByPlantIdAsync(long plantId, long tenantId);
     Task<IEnumerable<Machine>> ListMaintenanceDueByTenantAsync(long tenantId);
 }

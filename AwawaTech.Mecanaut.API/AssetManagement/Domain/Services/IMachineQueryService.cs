@@ -9,6 +9,7 @@ public interface IMachineQueryService
     Task<IEnumerable<Machine>> Handle(GetAvailableMachinesQuery query);
     Task<IEnumerable<Machine>> Handle(GetMachinesDueForMaintenanceQuery query);
     Task<IEnumerable<Machine>> Handle(GetMachinesByProductionLineQuery query);
+    Task<IEnumerable<Machine>> Handle(GetMachinesByPlantIdQuery query);
     Task<Machine?> Handle(GetMachineByIdQuery query);
     Task<Machine?> Handle(GetMachineBySerialNumberQuery query);
 } 
