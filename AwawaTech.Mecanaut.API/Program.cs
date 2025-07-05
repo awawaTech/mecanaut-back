@@ -67,6 +67,15 @@ using AwawaTech.Mecanaut.API.WorkOrders.Infrastructure.Persistence.EFC.Repositor
 using AwawaTech.Mecanaut.API.WorkOrders.Application.Internal.CommandServices;
 using AwawaTech.Mecanaut.API.WorkOrders.Application.Internal.QueryServices;
 
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Repositories;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Services;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.QueryServices;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST.Transform;
+
+
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -266,6 +275,13 @@ builder.Services.AddScoped<DynamicMaintenancePlanWithDetailsToResourceAssembler>
 builder.Services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
 builder.Services.AddScoped<IWorkOrderCommandService, WorkOrderCommandService>();
 builder.Services.AddScoped<IWorkOrderQueryService, WorkOrderQueryService>();
+
+
+// Execution Bounded Context
+builder.Services.AddScoped<IExecutedWorkOrderRepository, ExecutedWorkOrderRepository>();
+builder.Services.AddScoped<IExecutedWorkOrderCommandService, ExecutedWorkOrderCommandService>();
+builder.Services.AddScoped<IExecutedWorkOrderQueryService, ExecutedWorkOrderQueryService>();
+builder.Services.AddScoped<SaveExecutedWorkOrderCommandFromResourceAssembler>();
 
 
 // ───────────── Build & DB ensure ─────────────a

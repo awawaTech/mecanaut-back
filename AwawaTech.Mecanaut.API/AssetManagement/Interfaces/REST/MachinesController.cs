@@ -106,4 +106,11 @@ public class MachinesController : ControllerBase
         var list = await _qry.Handle(new GetMachinesByProductionLineQuery(lineId));
         return Ok(list.Select(MachineResourceFromEntityAssembler.ToResourceFromEntity));
     }
+    
+    [HttpGet("plant/{plantId:long}")]
+    public async Task<ActionResult<IEnumerable<MachineResource>>> GetByPlantId(long plantId)
+    {
+        var list = await _qry.Handle(new GetMachinesByPlantIdQuery(plantId));
+        return Ok(list.Select(MachineResourceFromEntityAssembler.ToResourceFromEntity));
+    }
 } 
