@@ -7,6 +7,7 @@ using AwawaTech.Mecanaut.API.Subscription.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.Subscription.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace AwawaTech.Mecanaut.API.Subscription.Infrastructure.Persistence.EFC.Repositories;
 
 public class SubscriptionPlanRepository : BaseRepository<SubscriptionPlan>, ISubscriptionPlanRepository

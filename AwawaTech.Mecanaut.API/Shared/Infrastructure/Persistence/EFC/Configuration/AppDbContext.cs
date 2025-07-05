@@ -20,6 +20,11 @@ using AwawaTech.Mecanaut.API.Subscription.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.Subscription.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.ValueObjects;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Entities;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.ValueObjects;
+using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.ValueObjects;
 namespace AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
 /// <summary>
@@ -181,6 +186,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
              .HasColumnName("machine_id");
             e.Property(m => m.SerialNumber).IsRequired();
             e.Property(m => m.Name).IsRequired();
+            e.Property(m => m.PlantId).IsRequired();
             e.HasIndex(m => m.SerialNumber).IsUnique();
 
             e.OwnsOne(m => m.Specs, s =>
@@ -265,6 +271,9 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
              .HasDatabaseName("idx_machine_metric_time");
         });
         
+        
+        // ------------------ SubscriptionPlan ------------------
+        
         builder.Entity<SubscriptionPlan>(e =>
         {
             e.HasKey(sp => sp.Id);
@@ -341,6 +350,133 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
             
         });
 
+        // ------------------ DynamicMaintenancePlanning ------------------
+        builder.Entity<DynamicMaintenancePlan>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id)
+             .ValueGeneratedOnAdd()
+             .HasColumnName("dynamic_maintenance_plan_id");
+            
+            e.Property(p => p.Name)
+             .IsRequired()
+             .HasMaxLength(100);
+            
+            e.Property(p => p.MetricId)
+             .IsRequired()
+             .HasColumnName("metric_id");
+            
+            e.Property(p => p.Amount)
+                .IsRequired()
+                .HasColumnName("amount");
+
+            e.Property(p => p.Status)
+             .IsRequired()
+             .HasConversion<string>()
+             .HasColumnName("status");
+
+            e.Property(p => p.TenantId)
+             .HasConversion(v => v.Value, v => new TenantId(v))
+             .HasColumnName("tenant_id");
+
+            // Índice único para nombre por tenant
+            e.HasIndex(p => new { p.Name, p.TenantId }).IsUnique();
+        });
+
+        builder.Entity<DynamicMaintenancePlanMachine>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("d_plan_machine_id");
+    
+            e.Property(pm => pm.PlanId)
+                .HasColumnName("plan_id");
+    
+            e.Property(pm => pm.MachineId)
+                .HasColumnName("machine_id");
+
+            // Relación con el plan
+            e.HasOne<DynamicMaintenancePlan>()
+                .WithMany()
+                .HasForeignKey(pm => pm.PlanId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_DynamicMaintenancePlanMachine_Plan");  // Nombre corto para el constraint
+        });
+
+
+        builder.Entity<DynamicMaintenancePlanTask>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("d_plan_task_id");
+    
+            e.Property(pt => pt.PlanId)
+                .HasColumnName("plan_id");
+    
+            e.Property(pt => pt.TaskDescription)
+                .IsRequired()
+                .HasMaxLength(500)
+                .HasColumnName("task_description");
+            
+            e.HasOne<DynamicMaintenancePlan>()
+                .WithMany()
+                .HasForeignKey(pt => pt.PlanId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_DynamicMaintenancePlanTask_Plan"); // Nombre corto para el constraint
+        });
+
+
+        // -------------------- WorkOrders Context --------------------
+        builder.Entity<WorkOrder>(e =>
+        {
+            e.HasKey(w => w.Id);
+            e.Property(w => w.Id)
+             .ValueGeneratedOnAdd()
+             .HasColumnName("work_order_id");
+            
+            e.Property(w => w.Code).IsRequired();
+            e.Property(w => w.Date).IsRequired();
+            e.Property(w => w.ProductionLineId).IsRequired();
+            e.Property(w => w.Status)
+             .HasConversion<string>()
+             .IsRequired();
+            e.Property(w => w.Type)
+             .HasConversion<string>()
+             .IsRequired();
+
+            // TenantId conversion
+            e.Property(w => w.TenantId)
+             .HasConversion(v => v.Value,
+                          v => new TenantId(v))
+             .HasColumnName("tenant_id");
+
+            // Collections as JSON
+            e.Property(w => w.MachineIds)
+             .HasColumnName("machine_ids")
+             .HasConversion(
+                 v => string.Join(",", v),
+                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
+             );
+
+            e.Property(w => w.TechnicianIds)
+             .HasColumnName("technician_ids")
+             .HasConversion(
+                 v => string.Join(",", v.Select(id => id.HasValue ? id.Value.ToString() : "")),
+                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                      .Select(s => string.IsNullOrEmpty(s) ? (long?)null : long.Parse(s))
+                      .ToList()
+             );
+
+            e.Property(w => w.Tasks)
+             .HasColumnName("tasks")
+             .HasConversion(
+                 v => string.Join("|", v),
+                 v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList()
+             );
+        });
+
         builder.UseSnakeCaseNamingConvention();
     }
 
@@ -355,4 +491,11 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; } = null!;
    public DbSet<InventoryPart> InventoryParts { get; set; } = null!;
    public DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
+
+   // DbSet para DynamicMaintenancePlanning
+   public DbSet<DynamicMaintenancePlan> DynamicMaintenancePlans { get; set; } = null!;
+   public DbSet<DynamicMaintenancePlanMachine> DynamicMaintenancePlanMachines { get; set; } = null!;
+   public DbSet<DynamicMaintenancePlanTask> DynamicMaintenancePlanTasks { get; set; } = null!;
+
+   public DbSet<WorkOrder> WorkOrders { get; set; } = null!;
 }

@@ -29,7 +29,7 @@ public class MachineCommandService : IMachineCommandService
         if (await machineRepo.ExistsBySerialNumberAsync(command.SerialNumber, tenantId))
             throw new InvalidOperationException("Serial number already exists");
 
-        var machine = Machine.Create(command.SerialNumber, command.Name, command.Specs, new TenantId(tenantId));
+        var machine = Machine.Create(command.SerialNumber, command.Name, command.Specs, command.PlantId, new TenantId(tenantId));
         await machineRepo.AddAsync(machine);
         await uow.CompleteAsync();
         return machine;

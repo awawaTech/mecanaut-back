@@ -3,7 +3,9 @@ using AwawaTech.Mecanaut.API.AssetManagement.Domain.Model.Queries;
 using AwawaTech.Mecanaut.API.AssetManagement.Domain.Services;
 using AwawaTech.Mecanaut.API.AssetManagement.Interfaces.REST.Resources;
 using AwawaTech.Mecanaut.API.AssetManagement.Interfaces.REST.Transform;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Domain.Model.Commands;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,10 +18,12 @@ public class MachinesController : ControllerBase
 {
     private readonly IMachineCommandService _cmd;
     private readonly IMachineQueryService   _qry;
+    private readonly IMachineMetricsCommandService _machineMetricsService;
 
-    public MachinesController(IMachineCommandService cmd, IMachineQueryService qry)
+    public MachinesController(IMachineCommandService cmd, IMachineQueryService qry, IMachineMetricsCommandService machineMetricsService)
     {
         _cmd = cmd; _qry = qry;
+        _machineMetricsService = machineMetricsService;
     }
 
     [HttpGet]
@@ -56,6 +60,21 @@ public class MachinesController : ControllerBase
     {
         var cmd = RegisterMachineCommandFromResourceAssembler.ToCommandFromResource(resource);
         var machine = await _cmd.Handle(cmd);
+        
+        foreach (var metric in resource.Metrics)
+        {
+            // Creamos el comando RecordMetricCommand con los valores necesarios
+            var recordMetricCommand = new RecordMetricCommand(
+                machine.Id, 
+                metric.MetricId, 
+                metric.Value, 
+                metric.MeasuredAt ?? DateTime.UtcNow
+            );
+
+            // Llamamos directamente al servicio de MachineMetrics para registrar la métrica
+            await _machineMetricsService.Handle(recordMetricCommand); 
+        }
+        
         return CreatedAtAction(nameof(GetById), new { id = machine.Id }, MachineResourceFromEntityAssembler.ToResourceFromEntity(machine));
     }
 
