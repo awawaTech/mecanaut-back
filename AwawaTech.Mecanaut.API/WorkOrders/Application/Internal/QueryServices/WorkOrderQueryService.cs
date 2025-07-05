@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.Queries;
 using AwawaTech.Mecanaut.API.WorkOrders.Domain.Repositories;
@@ -14,18 +16,13 @@ public class WorkOrderQueryService : IWorkOrderQueryService
         _repository = repository;
     }
 
-    public async Task<WorkOrder> FindByIdAsync(GetWorkOrderByIdQuery query)
+    public async Task<WorkOrder> Handle(GetWorkOrderByIdQuery query)
     {
         return await _repository.FindByIdAsync(query.Id, query.TenantId);
     }
 
-    public async Task<IEnumerable<WorkOrder>> ListAsync(GetAllWorkOrdersQuery query)
+    public async Task<IEnumerable<WorkOrder>> Handle(GetWorkOrdersByProductionLineQuery query)
     {
-        return await _repository.ListAsync(query.TenantId, query.Page, query.PageSize);
-    }
-
-    public async Task<IEnumerable<WorkOrder>> ListByStatusAsync(GetWorkOrdersByStatusQuery query)
-    {
-        return await _repository.FindByStatusAsync(query.Status, query.TenantId, query.Page, query.PageSize);
+        return await _repository.FindByProductionLineAsync(query.ProductionLineId, query.TenantId);
     }
 } 

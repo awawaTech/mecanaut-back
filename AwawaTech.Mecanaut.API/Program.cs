@@ -61,6 +61,14 @@ using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Application.Internal.Com
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Application.Internal.QueryServices;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST.Transform;
 
+using AwawaTech.Mecanaut.API.WorkOrders.Domain.Repositories;
+using AwawaTech.Mecanaut.API.WorkOrders.Domain.Services;
+using AwawaTech.Mecanaut.API.WorkOrders.Infrastructure.Persistence.EFC.Repositories;
+using AwawaTech.Mecanaut.API.WorkOrders.Application.Internal.CommandServices;
+using AwawaTech.Mecanaut.API.WorkOrders.Application.Internal.QueryServices;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ───────────── Controllers & routing ─────────────
@@ -251,6 +259,14 @@ builder.Services.AddScoped<IDynamicMaintenancePlanQueryService, DynamicMaintenan
 builder.Services.AddScoped<DynamicMaintenancePlanToResourceAssembler>();
 builder.Services.AddScoped<SaveDynamicMaintenancePlanCommandFromResourceAssembler>();
 builder.Services.AddScoped<DynamicMaintenancePlanWithDetailsToResourceAssembler>();
+
+//Work Oders
+
+// Work Orders Bounded Context
+builder.Services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
+builder.Services.AddScoped<IWorkOrderCommandService, WorkOrderCommandService>();
+builder.Services.AddScoped<IWorkOrderQueryService, WorkOrderQueryService>();
+
 
 // ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();
