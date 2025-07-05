@@ -10,6 +10,8 @@ public class DynamicMaintenancePlan : AuditableAggregateRoot
     public string Name { get; private set; }
     public long MetricId { get; private set; }
     
+    public long Amount { get; private set; }
+    
     public long ProductionLineId { get; private set; }
     
     public long PlantLineId { get; private set; }
@@ -18,21 +20,22 @@ public class DynamicMaintenancePlan : AuditableAggregateRoot
 
     protected DynamicMaintenancePlan() { }
 
-    private DynamicMaintenancePlan(string name, long metricId, long productionLineId, long plantLineId, TenantId tenantId)
+    private DynamicMaintenancePlan(string name, long metricId, long amount, long productionLineId, long plantLineId, TenantId tenantId)
     {
         Name = name;
         MetricId = metricId;
+        Amount = amount;
         ProductionLineId = productionLineId;
         PlantLineId = plantLineId;
         TenantId = tenantId;
         Status = PlanStatus.Active;
         
-        AddDomainEvent(new DynamicMaintenancePlanCreatedEvent(Id, tenantId.Value, name));
+        AddDomainEvent(new DynamicMaintenancePlanCreatedEvent(Id, tenantId.Value, name)); // Incluir Amount en el evento
     }
 
-    public static DynamicMaintenancePlan Create(string name, long metricId, long productionLineId, long plantLineId, TenantId tenantId)
+    public static DynamicMaintenancePlan Create(string name, long metricId, long amount, long productionLineId, long plantLineId, TenantId tenantId)
     {
-        return new DynamicMaintenancePlan(name, metricId, productionLineId, plantLineId, tenantId);
+        return new DynamicMaintenancePlan(name, metricId, amount, productionLineId, plantLineId, tenantId);
     }
 
     public void Activate()

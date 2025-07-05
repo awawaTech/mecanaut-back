@@ -12,6 +12,7 @@ namespace AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST.Tran
             {
                 Name = resource.Name,
                 MetricId = resource.MetricId, // Se asigna como string
+                Amount = long.Parse(resource.Amount),
                 ProductionLineId = resource.ProductionLineId,  // Se asigna como string
                 PlantLineId = resource.PlantLineId,  // Se asigna como string
                 Machines = resource.Machines ?? new List<long>(),  // Se asegura de que no sea null

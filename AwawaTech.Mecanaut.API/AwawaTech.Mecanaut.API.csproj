@@ -44,6 +44,8 @@
 	  <Folder Include="DynamicMaintenancePlanning\Application\Internal\CommandServices\" />
 	  <Folder Include="DynamicMaintenancePlanning\Application\Internal\QueryServices\" />
 	  <Folder Include="DynamicMaintenancePlanning\Infrastructure\Persistence\EFC\Repositories\" />
+	  <Folder Include="WorkOrders\Interfaces\REST\Resources\" />
+	  <Folder Include="WorkOrders\Interfaces\REST\Transform\" />
 	</ItemGroup>
 
 </Project>

@@ -11,7 +11,8 @@ public class DynamicMaintenancePlanToResourceAssembler
         {
             Id = plan.Id.ToString(),
             Name = plan.Name,
-            MetricId = plan.MetricId.ToString()
+            MetricId = plan.MetricId.ToString(),
+            Amount = plan.Amount,
         };
     }
 } 

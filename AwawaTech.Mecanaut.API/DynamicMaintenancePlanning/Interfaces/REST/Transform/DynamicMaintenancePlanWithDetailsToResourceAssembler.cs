@@ -14,6 +14,7 @@ namespace AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST.Tran
                 Id = planWithDetails.Plan.Id.ToString(),
                 Name = planWithDetails.Plan.Name,
                 MetricId = planWithDetails.Plan.MetricId.ToString(),
+                Amount = planWithDetails.Plan.Amount.ToString(),
                 MachineIds = planWithDetails.Machines.Select(m => m.MachineId).ToList(),  // Extraemos los IDs de las máquinas
                 TaskDescriptions = planWithDetails.Tasks.Select(t => t.TaskDescription).ToList() // Extraemos las descripciones de las tareas
             };

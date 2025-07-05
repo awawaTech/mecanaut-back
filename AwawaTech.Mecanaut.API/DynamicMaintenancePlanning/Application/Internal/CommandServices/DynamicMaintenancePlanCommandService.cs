@@ -37,6 +37,7 @@ public class DynamicMaintenancePlanCommandService : IDynamicMaintenancePlanComma
         var plan = DynamicMaintenancePlan.Create(
             command.Name,
             long.Parse(command.MetricId),
+            command.Amount,
             long.Parse(command.ProductionLineId),
             long.Parse(command.PlantLineId),
             new TenantId(tenantId));

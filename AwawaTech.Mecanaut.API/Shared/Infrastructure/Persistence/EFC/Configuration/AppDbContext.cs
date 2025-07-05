@@ -23,6 +23,8 @@ using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Entities;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.ValueObjects;
+using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.Aggregates;
+using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.ValueObjects;
 namespace AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Configuration;
 
 /// <summary>
@@ -363,6 +365,10 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
             e.Property(p => p.MetricId)
              .IsRequired()
              .HasColumnName("metric_id");
+            
+            e.Property(p => p.Amount)
+                .IsRequired()
+                .HasColumnName("amount");
 
             e.Property(p => p.Status)
              .IsRequired()
@@ -422,6 +428,55 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
         });
 
 
+        // -------------------- WorkOrders Context --------------------
+        builder.Entity<WorkOrder>(e =>
+        {
+            e.HasKey(w => w.Id);
+            e.Property(w => w.Id)
+             .ValueGeneratedOnAdd()
+             .HasColumnName("work_order_id");
+            
+            e.Property(w => w.Code).IsRequired();
+            e.Property(w => w.Date).IsRequired();
+            e.Property(w => w.ProductionLineId).IsRequired();
+            e.Property(w => w.Status)
+             .HasConversion<string>()
+             .IsRequired();
+            e.Property(w => w.Type)
+             .HasConversion<string>()
+             .IsRequired();
+
+            // TenantId conversion
+            e.Property(w => w.TenantId)
+             .HasConversion(v => v.Value,
+                          v => new TenantId(v))
+             .HasColumnName("tenant_id");
+
+            // Collections as JSON
+            e.Property(w => w.MachineIds)
+             .HasColumnName("machine_ids")
+             .HasConversion(
+                 v => string.Join(",", v),
+                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
+             );
+
+            e.Property(w => w.TechnicianIds)
+             .HasColumnName("technician_ids")
+             .HasConversion(
+                 v => string.Join(",", v.Select(id => id.HasValue ? id.Value.ToString() : "")),
+                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                      .Select(s => string.IsNullOrEmpty(s) ? (long?)null : long.Parse(s))
+                      .ToList()
+             );
+
+            e.Property(w => w.Tasks)
+             .HasColumnName("tasks")
+             .HasConversion(
+                 v => string.Join("|", v),
+                 v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList()
+             );
+        });
+
         builder.UseSnakeCaseNamingConvention();
     }
 
@@ -441,4 +496,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    public DbSet<DynamicMaintenancePlan> DynamicMaintenancePlans { get; set; } = null!;
    public DbSet<DynamicMaintenancePlanMachine> DynamicMaintenancePlanMachines { get; set; } = null!;
    public DbSet<DynamicMaintenancePlanTask> DynamicMaintenancePlanTasks { get; set; } = null!;
+
+   public DbSet<WorkOrder> WorkOrders { get; set; } = null!;
 }

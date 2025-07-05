@@ -7,6 +7,8 @@ namespace AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST.Reso
         public string Id { get; set; }
         public string Name { get; set; }
         public string MetricId { get; set; }
+        
+        public long Amount { get; set; }
 
         // Lista de IDs de máquinas asociadas
         public List<long> MachineIds { get; set; } = new List<long>();
