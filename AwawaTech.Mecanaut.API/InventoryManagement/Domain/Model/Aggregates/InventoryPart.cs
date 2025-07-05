@@ -86,4 +86,10 @@ public class InventoryPart : AuditableAggregateRoot
         if (minimumStock < 0)
             throw new ArgumentException("Minimum stock cannot be negative");
     }
+
+    public void DecreaseInventory(long quantity)
+    {
+        if (quantity > CurrentStock) CurrentStock = 0;
+        else CurrentStock -= (int)quantity;
+    }
 } 

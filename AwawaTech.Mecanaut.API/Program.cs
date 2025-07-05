@@ -73,8 +73,8 @@ using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.Persistence.EFC.R
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.CommandServices;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.QueryServices;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST.Transform;
-
-
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.OutboundServices;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.OutboundServices;
 
 
 
@@ -282,7 +282,7 @@ builder.Services.AddScoped<IExecutedWorkOrderRepository, ExecutedWorkOrderReposi
 builder.Services.AddScoped<IExecutedWorkOrderCommandService, ExecutedWorkOrderCommandService>();
 builder.Services.AddScoped<IExecutedWorkOrderQueryService, ExecutedWorkOrderQueryService>();
 builder.Services.AddScoped<SaveExecutedWorkOrderCommandFromResourceAssembler>();
-
+builder.Services.AddScoped<IInventoryManagementAcl, InventoryManagementAcl>();
 
 // ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();

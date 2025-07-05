@@ -68,5 +68,16 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Application.Internal.Comman
 
             return part;
         }
+        
+        
+        public async Task HandleAsync(DecreaseInventoryCommand command)
+        {
+            var inventoryPart = await _repository.FindByIdAsync(command.InventoryPartId);
+            if (inventoryPart == null)
+                throw new InvalidOperationException($"InventoryPart with id {command.InventoryPartId} not found");
+
+            inventoryPart.DecreaseInventory(command.Quantity);
+            await _unitOfWork.CompleteAsync();
+        }
     }
 } 

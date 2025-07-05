@@ -156,5 +156,18 @@ namespace AwawaTech.Mecanaut.API.InventoryManagement.Interfaces.REST
             await _commandService.Handle(new DeleteInventoryPartCommand(id));
             return NoContent();
         }
+        
+        [HttpPut("{id}/decrease")]
+        public async Task<ActionResult> DecreaseStock(long id, [FromBody] int quantity)
+        {
+            var command = new DecreaseInventoryCommand
+            {
+                InventoryPartId = id,
+                Quantity = quantity
+            };
+
+            await _commandService.HandleAsync(command);
+            return Ok();
+        }
     }
 } 
