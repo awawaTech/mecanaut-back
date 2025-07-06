@@ -11,6 +11,7 @@ public class SaveExecutedWorkOrderCommandFromResourceAssembler
         return new CreateExecutedWorkOrderCommand
         {
             Code = resource.Code,
+            Annotations = resource.Annotations,
             ExecutionDate = resource.ExecutionDate,
             ProductionLineId = resource.ProductionLineId,
             IntervenedMachineIds = resource.IntervenedMachineIds,

@@ -2,6 +2,7 @@ using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Services;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST.Resources;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST.Transform;
 using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Queries;
+using AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Interfaces.REST;
@@ -15,6 +16,10 @@ public class DynamicMaintenancePlansController : ControllerBase
     private readonly DynamicMaintenancePlanToResourceAssembler _toResourceAssembler;
     private readonly DynamicMaintenancePlanWithDetailsToResourceAssembler _toResourceAssemblerWithDetails;
     
+    //
+    private readonly IDynamicMaintenancePlanRepository _dynamicMaintenancePlanRepository;
+    //
+    
     private readonly SaveDynamicMaintenancePlanCommandFromResourceAssembler _fromResourceAssembler;
 
     public DynamicMaintenancePlansController(
@@ -22,13 +27,15 @@ public class DynamicMaintenancePlansController : ControllerBase
         IDynamicMaintenancePlanQueryService queryService,
         DynamicMaintenancePlanToResourceAssembler toResourceAssembler,
         DynamicMaintenancePlanWithDetailsToResourceAssembler toResourceAssemblerWithDetails,
-        SaveDynamicMaintenancePlanCommandFromResourceAssembler fromResourceAssembler)
+        SaveDynamicMaintenancePlanCommandFromResourceAssembler fromResourceAssembler,
+        IDynamicMaintenancePlanRepository dynamicMaintenancePlanRepository)
     {
         _commandService = commandService;
         _queryService = queryService;
         _toResourceAssembler = toResourceAssembler;
         _toResourceAssemblerWithDetails = toResourceAssemblerWithDetails;
         _fromResourceAssembler = fromResourceAssembler;
+        _dynamicMaintenancePlanRepository = dynamicMaintenancePlanRepository;
     }
 
     [HttpGet]
@@ -67,7 +74,7 @@ public class DynamicMaintenancePlansController : ControllerBase
         if (plan == null)
             return NotFound();
 
-        var resource = _toResourceAssembler.ToResource(plan);
+        var resource = _toResourceAssemblerWithDetails.ToResource(plan);
         return Ok(resource);
     }
     
@@ -90,4 +97,14 @@ public class DynamicMaintenancePlansController : ControllerBase
         // Devolvemos el resultado con el status Created
         return Ok(resultResource);
     }
+    
+    [HttpGet("test-plan-id")]
+    public async Task<ActionResult<long?>> TestGetPlanId([FromQuery] long machineId, [FromQuery] long metricId, [FromQuery] double amount)
+    {
+        var planId = await _dynamicMaintenancePlanRepository
+            .GetPlanIdByMachineMetricAndAmountAsync(machineId, metricId, amount);
+
+        return Ok(planId);
+    }
+
 }

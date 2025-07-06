@@ -7,6 +7,7 @@ namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Model.Commands;
 public class CreateExecutedWorkOrderCommand
 {
     public string Code { get; init; }
+    public string Annotations { get; init; }
     public DateTime ExecutionDate { get; init; }
     public long ProductionLineId { get; init; }
     public List<long> IntervenedMachineIds { get; init; }

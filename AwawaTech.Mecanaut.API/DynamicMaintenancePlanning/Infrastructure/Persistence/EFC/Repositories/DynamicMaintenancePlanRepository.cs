@@ -21,13 +21,31 @@ public class DynamicMaintenancePlanRepository : BaseRepository<DynamicMaintenanc
     public async Task<bool> ExistsByNameAsync(string name, long tenantId)
         => await _context.Set<DynamicMaintenancePlan>().AnyAsync(p => p.Name == name && p.TenantId == new TenantId(tenantId));
 
-    public async Task<DynamicMaintenancePlan?> GetByIdAsync(string id, string tenantId)
+    public async Task<DynamicMaintenancePlanWithDetails?> GetByIdAsync(string id, string tenantId)
     {
         if (!long.TryParse(id, out var planId))
             return null;
 
-        return await _context.Set<DynamicMaintenancePlan>()
+        var plan = await _context.Set<DynamicMaintenancePlan>()
             .FirstOrDefaultAsync(p => p.Id == planId && p.TenantId == new TenantId(long.Parse(tenantId)));
+
+        if (plan == null)
+            return null;
+
+        var machines = await _context.Set<DynamicMaintenancePlanMachine>()
+            .Where(m => m.PlanId == planId)
+            .ToListAsync();
+
+        var tasks = await _context.Set<DynamicMaintenancePlanTask>()
+            .Where(t => t.PlanId == planId)
+            .ToListAsync();
+
+        return new DynamicMaintenancePlanWithDetails
+        {
+            Plan = plan,
+            Machines = machines,
+            Tasks = tasks
+        };
     }
 
 
@@ -78,4 +96,23 @@ public class DynamicMaintenancePlanRepository : BaseRepository<DynamicMaintenanc
     {
         await _context.Set<T>().AddAsync(entity);
     }
+    
+    public async Task<long?> GetPlanIdByMachineMetricAndAmountAsync(long machineId, long metricId, double amount)
+    {
+        return await _context.Set<DynamicMaintenancePlan>()
+            .Join(
+                _context.Set<DynamicMaintenancePlanMachine>(),
+                plan => plan.Id,
+                machine => machine.PlanId,
+                (plan, machine) => new { plan, machine }
+            )
+            .Where(joined =>
+                joined.machine.MachineId == machineId &&
+                joined.plan.MetricId == metricId &&
+                joined.plan.Amount == amount
+            )
+            .Select(joined => joined.plan.Id)
+            .FirstOrDefaultAsync();
+    }
+
 }
