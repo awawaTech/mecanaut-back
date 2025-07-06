@@ -12,6 +12,8 @@ public class SaveExecutedWorkOrderResource
     public List<long?> AssignedTechnicianIds { get; set; }
     public List<string> ExecutedTasks { get; set; }
     public List<ProductQuantityResource> UsedProducts { get; set; }
+    
+    public List<string> Files { get; set; }
 }
 
 public class ProductQuantityResource

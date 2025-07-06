@@ -8,7 +8,8 @@ namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST.Transform;
 
 public class ExecutedWorkOrderToResourceAssembler
 {
-    public static ExecutedWorkOrderResource ToResource(ExecutedWorkOrder executedWorkOrder, IEnumerable<UsedProduct> usedProducts)
+    public static ExecutedWorkOrderResource ToResource(ExecutedWorkOrder executedWorkOrder, IEnumerable<UsedProduct> usedProducts,
+        IEnumerable<string> executionImages)
     {
         return new ExecutedWorkOrderResource
         {
@@ -25,7 +26,8 @@ public class ExecutedWorkOrderToResourceAssembler
                 {
                     ProductId = p.ProductId,
                     Quantity = p.Quantity
-                }).ToList()
+                }).ToList(),
+            ExecutionImages = executionImages.ToList()
         };
     }
 }
