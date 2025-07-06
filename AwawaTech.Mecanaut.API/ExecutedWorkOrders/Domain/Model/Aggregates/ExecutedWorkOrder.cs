@@ -13,6 +13,8 @@ public class ExecutedWorkOrder : AuditableAggregateRoot
     public TenantId TenantId { get; private set; }
     public DateTime ExecutionDate { get; private set; }
     public long ProductionLineId { get; private set; }
+    
+    //public string Description { get; private set; }
     public List<long> IntervenedMachineIds { get; private set; }
     public List<long?> AssignedTechnicianIds { get; private set; }
     public List<string> ExecutedTasks { get; private set; }
