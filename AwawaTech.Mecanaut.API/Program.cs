@@ -74,7 +74,7 @@ using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.CommandServ
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.QueryServices;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST.Transform;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.OutboundServices;
-using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.OutboundServices;
+using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.OutboundServices.Services;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Storage;
 using AwawaTech.Mecanaut.API.Shared.Domain.Services;
 using AwawaTech.Mecanaut.API.WorkOrders.Application.Internal.CommandServices;
@@ -238,6 +238,11 @@ builder.Services.AddScoped<IMachineCatalogAcl, MachineCatalogAcl>();
 
 builder.Services.AddHostedService<MetricsSeedHostedService>();
 
+builder.Services.AddScoped<IDynamicMaintenancePlanningAcl, DynamicMaintenancePlanningAcl>();
+builder.Services.AddScoped<IWorkOrderAcl, WorkOrderAcl>();
+
+
+
 // Repositorios
 builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 
@@ -290,6 +295,7 @@ builder.Services.AddScoped<IExecutedWorkOrderCommandService, ExecutedWorkOrderCo
 builder.Services.AddScoped<IExecutedWorkOrderQueryService, ExecutedWorkOrderQueryService>();
 builder.Services.AddScoped<SaveExecutedWorkOrderCommandFromResourceAssembler>();
 builder.Services.AddScoped<IInventoryManagementAcl, InventoryManagementAcl>();
+builder.Services.AddScoped<IWorkOrderExecAcl, WorkOrderExecAcl>();
 
 // ───────────── Build & DB ensure ─────────────a
 var app = builder.Build();

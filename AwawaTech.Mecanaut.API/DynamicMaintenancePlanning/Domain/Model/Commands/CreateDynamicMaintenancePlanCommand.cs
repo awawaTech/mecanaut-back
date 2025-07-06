@@ -6,7 +6,7 @@ namespace AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Model.Command
     {
         public string Name { get; set; }
         public string MetricId { get; set; }
-        public long Amount { get;  set; }
+        public double Amount { get;  set; }
         public string ProductionLineId { get; set; }
         
         public string PlantLineId { get; set; }

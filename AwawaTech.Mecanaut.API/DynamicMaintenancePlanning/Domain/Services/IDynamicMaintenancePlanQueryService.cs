@@ -6,7 +6,8 @@ namespace AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Services
 {
     public interface IDynamicMaintenancePlanQueryService
     {
-        Task<DynamicMaintenancePlan> GetAsync(GetDynamicMaintenancePlanQuery query);
+        Task<DynamicMaintenancePlanWithDetails> GetAsync(GetDynamicMaintenancePlanQuery query);
         Task<IEnumerable<DynamicMaintenancePlanWithDetails>> GetAllAsync(GetAllDynamicMaintenancePlansQuery query);
+        Task<DynamicMaintenancePlanWithDetails?> GetByMachineMetricAndAmountAsync(long machineId, long metricId, double amount, string tenantId);
     }
 } 

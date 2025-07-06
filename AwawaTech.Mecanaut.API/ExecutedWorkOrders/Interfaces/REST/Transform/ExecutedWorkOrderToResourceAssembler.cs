@@ -15,6 +15,7 @@ public class ExecutedWorkOrderToResourceAssembler
         {
             Id = executedWorkOrder.Id,
             Code = executedWorkOrder.Code,
+            Annotations = executedWorkOrder.Annotations,
             ExecutionDate = executedWorkOrder.ExecutionDate,
             ProductionLineId = executedWorkOrder.ProductionLineId,
             IntervenedMachineIds = executedWorkOrder.IntervenedMachineIds,

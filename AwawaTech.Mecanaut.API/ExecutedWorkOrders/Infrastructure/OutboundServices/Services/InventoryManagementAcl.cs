@@ -2,7 +2,7 @@
 using AwawaTech.Mecanaut.API.InventoryManagement.Domain.Services;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.OutboundServices;
 
-namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.OutboundServices;
+namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.OutboundServices.Services;
 
 public class InventoryManagementAcl : IInventoryManagementAcl
 {

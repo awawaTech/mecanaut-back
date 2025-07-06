@@ -28,7 +28,7 @@ public class ExecutedWorkOrdersController : ControllerBase
     public async Task<IActionResult> CreateAsync([FromBody] SaveExecutedWorkOrderResource resource)
     {
         var command = SaveExecutedWorkOrderCommandFromResourceAssembler.ToCommand(resource);
-        var executedWorkOrder = await _commandService.HandleAsync(command, resource.Files);
+        var executedWorkOrder = await _commandService.HandleAsync(command, resource.Files, resource.WorkOrderId);
         return Ok();
     }
 

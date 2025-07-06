@@ -7,6 +7,8 @@ public class ExecutedWorkOrderResource
 {
     public long Id { get; set; }
     public string Code { get; set; }
+    
+    public string Annotations { get; set; }
     public DateTime ExecutionDate { get; set; }
     public long ProductionLineId { get; set; }
     public List<long> IntervenedMachineIds { get; set; }

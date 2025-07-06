@@ -19,24 +19,27 @@ public class ExecutedWorkOrderCommandService : IExecutedWorkOrderCommandService
     private readonly TenantContextHelper tenantHelper;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IInventoryManagementAcl _inventoryAcl;
+    private readonly IWorkOrderExecAcl _workOrderExecAcl;
     private readonly IImageStorageService _imageStorage;
 
     public ExecutedWorkOrderCommandService(IExecutedWorkOrderRepository repository, IUnitOfWork unitOfWork
-    ,TenantContextHelper tenantHelper, IInventoryManagementAcl inventoryAcl, IImageStorageService imageStorage)
+    ,TenantContextHelper tenantHelper, IInventoryManagementAcl inventoryAcl,IWorkOrderExecAcl workOrderExecAcl ,IImageStorageService imageStorage)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
         this.tenantHelper = tenantHelper;
         _inventoryAcl = inventoryAcl;
+        _workOrderExecAcl = workOrderExecAcl;
         _imageStorage = imageStorage;
     }
 
-    public async Task<ExecutedWorkOrder> HandleAsync(CreateExecutedWorkOrderCommand command, List<string> files)
+    public async Task<ExecutedWorkOrder> HandleAsync(CreateExecutedWorkOrderCommand command, List<string> files, long WorkOrderId)
     {
         var tenantId = new TenantId(tenantHelper.GetCurrentTenantId());
         
         var executedWorkOrder = ExecutedWorkOrder.Create(
             command.Code,
+            command.Annotations,
             tenantId,
             command.ExecutionDate,
             command.ProductionLineId);
@@ -71,6 +74,8 @@ public class ExecutedWorkOrderCommandService : IExecutedWorkOrderCommandService
                 part.Quantity
             );
         }
+        
+        await _workOrderExecAcl.MarkAsCompletedAsync(WorkOrderId, tenantId);
         
         return executedWorkOrder;
     }

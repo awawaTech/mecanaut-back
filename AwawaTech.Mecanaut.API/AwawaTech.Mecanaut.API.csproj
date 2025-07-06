@@ -48,7 +48,6 @@
 	  <Folder Include="DynamicMaintenancePlanning\Application\Internal\QueryServices\" />
 	  <Folder Include="DynamicMaintenancePlanning\Infrastructure\Persistence\EFC\Repositories\" />
 	  <Folder Include="ExecutedWorkOrders\Domain\Services\" />
-	  <Folder Include="ExecutedWorkOrders\Infrastructure\OutboundServices\Services\" />
 	  <Folder Include="WorkOrders\Domain\Repositories\" />
 	  <Folder Include="WorkOrders\Domain\Services\" />
 	</ItemGroup>

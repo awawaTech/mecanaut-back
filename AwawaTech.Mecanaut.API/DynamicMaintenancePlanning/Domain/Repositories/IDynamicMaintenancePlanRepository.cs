@@ -9,8 +9,10 @@ namespace AwawaTech.Mecanaut.API.DynamicMaintenancePlanning.Domain.Repositories;
 public interface IDynamicMaintenancePlanRepository : IBaseRepository<DynamicMaintenancePlan>
 {
     Task<bool> ExistsByNameAsync(string name, long tenantId);
-    Task<DynamicMaintenancePlan> GetByIdAsync(string id, string tenantId);
+    Task<DynamicMaintenancePlanWithDetails> GetByIdAsync(string id, string tenantId);
     Task<IEnumerable<DynamicMaintenancePlanWithDetails>> GetAllByTenantIdAndPlantLineIdAsync(string tenantId, string plantLineId);
     Task AddEntityAsync<T>(T entity) where T : class;
-    
+
+    Task<long?> GetPlanIdByMachineMetricAndAmountAsync(long machineId, long metricId, double amount);
+
 } 

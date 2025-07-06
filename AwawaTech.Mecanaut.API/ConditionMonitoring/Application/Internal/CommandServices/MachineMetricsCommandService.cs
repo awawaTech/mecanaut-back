@@ -6,6 +6,9 @@ using AwawaTech.Mecanaut.API.ConditionMonitoring.Domain.Services;
 using AwawaTech.Mecanaut.API.Shared.Domain.Model.ValueObjects;
 using AwawaTech.Mecanaut.API.Shared.Domain.Repositories;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Multitenancy;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.OutboundServices;
+using AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.OutboundServices.Dtos;
+
 using Microsoft.Extensions.Logging;
 
 namespace AwawaTech.Mecanaut.API.ConditionMonitoring.Application.Internal.CommandServices;
@@ -17,17 +20,23 @@ public class MachineMetricsCommandService : IMachineMetricsCommandService
     private readonly TenantContextHelper tenantHelper;
     private readonly IMachineCatalogAcl catalogAcl;
     private readonly ILogger<MachineMetricsCommandService> _logger;
+    private readonly IDynamicMaintenancePlanningAcl _planningAcl;
+    private readonly IWorkOrderAcl _workOrderAcl;
 
     public MachineMetricsCommandService(IMachineMetricsRepository metricsRepository,
                                         IUnitOfWork unitOfWork,
                                         TenantContextHelper tenantHelper,
                                         IMachineCatalogAcl catalogAcl,
-                                        ILogger<MachineMetricsCommandService> logger)
+                                        ILogger<MachineMetricsCommandService> logger,
+                                        IDynamicMaintenancePlanningAcl planningAcl,
+                                        IWorkOrderAcl workOrderAcl)
     {
         this.metricsRepository = metricsRepository;
         this.unitOfWork = unitOfWork;
         this.tenantHelper = tenantHelper;
         this.catalogAcl = catalogAcl;
+        this._planningAcl = planningAcl;
+        this._workOrderAcl = workOrderAcl;
         _logger = logger;
     }
 
@@ -52,6 +61,28 @@ public class MachineMetricsCommandService : IMachineMetricsCommandService
             await metricsRepository.AddAsync(metrics);
         else
             metricsRepository.Update(metrics);
+        
+        
+        var planTemplate = await _planningAcl.GetPlanTemplateByMetricAsync(
+            command.MachineId, command.MetricId, command.Value, new TenantId(tenantId));
+        
+        if (planTemplate != null)
+        {
+            var createDto = new CreateWorkOrderFromPlanDto
+            {
+                Code = $"{planTemplate.Name}_{command.MachineId}",
+                TenantId = new TenantId(tenantId),
+                Date = DateTime.UtcNow,
+                ProductionLineId = planTemplate.ProductionLineId,
+                Type = planTemplate.Type,
+                MachineIds = new List<long> { command.MachineId },
+                Tasks = planTemplate.Tasks,
+                TechnicianIds = new List<long?>()
+            };
+
+            await _workOrderAcl.CreateWorkOrderFromDynamicPlanAsync(createDto);
+        }
+        
 
         await unitOfWork.CompleteAsync();
 

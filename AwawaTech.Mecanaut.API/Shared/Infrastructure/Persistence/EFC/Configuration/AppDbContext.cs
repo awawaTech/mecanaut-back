@@ -487,6 +487,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
         {
             e.HasKey(x => x.Id);
             e.Property(x => x.Code).IsRequired();
+            e.Property(x => x.Annotations).IsRequired();
             e.Property(w => w.TenantId)
                 .HasConversion(v => v.Value,
                     v => new TenantId(v))
@@ -560,6 +561,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    public DbSet<DynamicMaintenancePlan> DynamicMaintenancePlans { get; set; } = null!;
    public DbSet<DynamicMaintenancePlanMachine> DynamicMaintenancePlanMachines { get; set; } = null!;
    public DbSet<DynamicMaintenancePlanTask> DynamicMaintenancePlanTasks { get; set; } = null!;
+   
 
    //DbSet para ExecutionWorkOrders
    

@@ -10,11 +10,11 @@ namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Model.Aggregates;
 public class ExecutedWorkOrder : AuditableAggregateRoot
 {
     public string Code { get; private set; }
+    
+    public string Annotations { get; private set; }
     public TenantId TenantId { get; private set; }
     public DateTime ExecutionDate { get; private set; }
     public long ProductionLineId { get; private set; }
-    
-    //public string Description { get; private set; }
     public List<long> IntervenedMachineIds { get; private set; }
     public List<long?> AssignedTechnicianIds { get; private set; }
     public List<string> ExecutedTasks { get; private set; }
@@ -28,6 +28,7 @@ public class ExecutedWorkOrder : AuditableAggregateRoot
 
     private ExecutedWorkOrder(
         string code,
+        string annotations,
         TenantId tenantId,
         DateTime executionDate,
         long productionLineId) : this()
@@ -36,6 +37,7 @@ public class ExecutedWorkOrder : AuditableAggregateRoot
             throw new ArgumentException("ExecutedWorkOrder code cannot be empty");
 
         Code = code;
+        Annotations = annotations;
         TenantId = tenantId;
         ExecutionDate = executionDate;
         ProductionLineId = productionLineId;
@@ -45,11 +47,12 @@ public class ExecutedWorkOrder : AuditableAggregateRoot
 
     public static ExecutedWorkOrder Create(
         string code,
+        string annotations,
         TenantId tenantId,
         DateTime executionDate,
         long productionLineId)
     {
-        return new ExecutedWorkOrder(code, tenantId, executionDate, productionLineId);
+        return new ExecutedWorkOrder(code,annotations ,tenantId, executionDate, productionLineId);
     }
 
     public void SetIntervenedMachines(IEnumerable<long> machineIds)

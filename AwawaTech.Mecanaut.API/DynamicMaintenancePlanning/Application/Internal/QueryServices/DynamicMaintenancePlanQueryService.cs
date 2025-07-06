@@ -19,7 +19,7 @@ public class DynamicMaintenancePlanQueryService : IDynamicMaintenancePlanQuerySe
         tenantHelper   = helper;
     }
 
-    public async Task<DynamicMaintenancePlan?> GetAsync(GetDynamicMaintenancePlanQuery query)
+    public async Task<DynamicMaintenancePlanWithDetails?> GetAsync(GetDynamicMaintenancePlanQuery query)
     {
         var tenantId = tenantHelper.GetCurrentTenantId();
         return await planRepository.GetByIdAsync(query.Id, tenantId.ToString());
@@ -29,5 +29,13 @@ public class DynamicMaintenancePlanQueryService : IDynamicMaintenancePlanQuerySe
     {
         var tenantId = tenantHelper.GetCurrentTenantId();
         return await planRepository.GetAllByTenantIdAndPlantLineIdAsync(tenantId.ToString(), query.PlantLineId);
+    }
+    
+    public async Task<DynamicMaintenancePlanWithDetails?> GetByMachineMetricAndAmountAsync(long machineId, long metricId, double amount, string tenantId)
+    {
+        var planId = await planRepository.GetPlanIdByMachineMetricAndAmountAsync(machineId, metricId, amount);
+        if (planId == null) return null;
+
+        return await planRepository.GetByIdAsync(planId.Value.ToString(), tenantId);
     }
 }
