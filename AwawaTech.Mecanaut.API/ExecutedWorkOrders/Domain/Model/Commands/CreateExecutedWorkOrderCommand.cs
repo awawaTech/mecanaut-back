@@ -13,4 +13,6 @@ public class CreateExecutedWorkOrderCommand
     public List<long?> AssignedTechnicianIds { get; init; }
     public List<string> ExecutedTasks { get; init; }
     public List<(long ProductId, int Quantity)> UsedProducts { get; init; }
+    
+    //public List<string> ExecutionImages { get; init; }
 } 

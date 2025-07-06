@@ -75,7 +75,9 @@ using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.QueryServic
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST.Transform;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.OutboundServices;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Infrastructure.OutboundServices;
-
+using AwawaTech.Mecanaut.API.Shared.Infrastructure.Storage;
+using AwawaTech.Mecanaut.API.Shared.Domain.Services;
+using AwawaTech.Mecanaut.API.WorkOrders.Application.Internal.CommandServices;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -216,6 +218,11 @@ builder.Services.AddScoped<IRoleQueryService, RoleQueryService>();
 builder.Services.AddScoped<ITenantCommandService, TenantCommandService>();
 builder.Services.AddScoped<ITenantQueryService, TenantQueryService>();
 builder.Services.AddHostedService<SeedRolesHostedService>();
+
+
+// Cloudinary
+builder.Services.AddScoped<IImageStorageService, CloudinaryService>();
+
 
 // ConditionMonitoring Bounded Context
 builder.Services.AddScoped<IMachineMetricsRepository, MachineMetricsRepository>();
