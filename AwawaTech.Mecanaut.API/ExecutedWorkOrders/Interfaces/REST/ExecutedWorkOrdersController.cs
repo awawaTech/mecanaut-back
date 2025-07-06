@@ -4,6 +4,8 @@ using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Services;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST.Resources;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST.Transform;
 using Microsoft.AspNetCore.Mvc;
+using AwawaTech.Mecanaut.API.Shared.Domain.Services;
+
 
 namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Interfaces.REST;
 
@@ -26,7 +28,7 @@ public class ExecutedWorkOrdersController : ControllerBase
     public async Task<IActionResult> CreateAsync([FromBody] SaveExecutedWorkOrderResource resource)
     {
         var command = SaveExecutedWorkOrderCommandFromResourceAssembler.ToCommand(resource);
-        var executedWorkOrder = await _commandService.HandleAsync(command);
+        var executedWorkOrder = await _commandService.HandleAsync(command, resource.Files);
         return Ok();
     }
 
@@ -38,7 +40,8 @@ public class ExecutedWorkOrdersController : ControllerBase
             return NotFound();
 
         var usedProducts = await _queryService.FindUsedProductsByExecutedWorkOrderIdAsync(id);
-        var resource = ExecutedWorkOrderToResourceAssembler.ToResource(executedWorkOrder, usedProducts);
+        var executionImages = await _queryService.FindImagesByExecutedWorkOrderIdAsync(id);
+        var resource = ExecutedWorkOrderToResourceAssembler.ToResource(executedWorkOrder, usedProducts, executionImages);
         return Ok(resource);
     }
 
@@ -49,11 +52,16 @@ public class ExecutedWorkOrdersController : ControllerBase
         var allUsedProducts = await _queryService.FindUsedProductsByExecutedWorkOrderIdsAsync(
             executedWorkOrders.Select(x => x.Id));
         
+        var allExecutionImages = await _queryService.FindImagesByExecutedWorkOrderIdsAsync(
+            executedWorkOrders.Select(x => x.Id));
+        
         var resources = executedWorkOrders.Select(order => 
             ExecutedWorkOrderToResourceAssembler.ToResource(
                 order, 
-                allUsedProducts.Where(p => p.ExecutedWorkOrderId == order.Id)));
+                allUsedProducts.Where(p => p.ExecutedWorkOrderId == order.Id),
+                allExecutionImages));
                 
         return Ok(resources);
     }
 } 
+

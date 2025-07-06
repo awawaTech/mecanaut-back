@@ -520,9 +520,21 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
         builder.Entity<UsedProduct>(e =>
         {
             e.HasKey(x => x.Id);
+            //e.Property(x => x.Id).ValueGeneratedOnAdd();
             e.Property(x => x.ExecutedWorkOrderId).IsRequired();
             e.Property(x => x.ProductId).IsRequired();
             e.Property(x => x.Quantity).IsRequired();
+    
+            e.HasOne<ExecutedWorkOrder>()
+                .WithMany()
+                .HasForeignKey(x => x.ExecutedWorkOrderId);
+        });
+        
+        builder.Entity<ExecutionImages>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.ExecutedWorkOrderId).IsRequired();
+            e.Property(x => x.ImageUrl).IsRequired();
     
             e.HasOne<ExecutedWorkOrder>()
                 .WithMany()
@@ -553,5 +565,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
    
    public DbSet<ExecutedWorkOrder> ExecutedWorkOrders { get; set; } = null!;
    public DbSet<UsedProduct> UsedProducts { get; set; } = null!;
+   public DbSet<ExecutionImages> ExecutionImages { get; set; } = null!;
    public DbSet<WorkOrder> WorkOrders { get; set; } = null!;
 }

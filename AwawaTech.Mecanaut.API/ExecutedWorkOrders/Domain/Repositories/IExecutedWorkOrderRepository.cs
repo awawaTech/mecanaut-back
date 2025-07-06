@@ -12,7 +12,13 @@ public interface IExecutedWorkOrderRepository : IBaseRepository<ExecutedWorkOrde
     Task<ExecutedWorkOrder> FindByIdAsync(long id);
     Task<IEnumerable<ExecutedWorkOrder>> FindByProductionLineIdAsync(long productionLineId);
     Task AddEntityAsync(UsedProduct entity);
+    
+    Task AddEntityAsync(ExecutionImages entity);
     Task<IEnumerable<UsedProduct>> FindUsedProductsByExecutedWorkOrderIdAsync(long executedWorkOrderId);
 
+    Task<IEnumerable<string>> FindImagesByExecutedWorkOrderIdAsync(long executedWorkOrderId);
+
     Task<IEnumerable<UsedProduct>> FindUsedProductsByExecutedWorkOrderIdsAsync(IEnumerable<long> executedWorkOrderIds);
+    
+    Task<IEnumerable<string>> FindImagesByExecutedWorkOrderIdsAsync(IEnumerable<long> executedWorkOrderIds);
 } 

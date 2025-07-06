@@ -13,4 +13,6 @@ public class ExecutedWorkOrderResource
     public List<long?> AssignedTechnicianIds { get; set; }
     public List<string> ExecutedTasks { get; set; }
     public List<ProductQuantityResource> UsedProducts { get; set; }
+    
+    public List<string> ExecutionImages { get; set; }
 } 

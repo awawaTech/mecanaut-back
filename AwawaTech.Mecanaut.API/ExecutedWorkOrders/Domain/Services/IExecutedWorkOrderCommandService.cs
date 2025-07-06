@@ -6,5 +6,5 @@ namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Domain.Services;
  
 public interface IExecutedWorkOrderCommandService
 {
-    Task<ExecutedWorkOrder> HandleAsync(CreateExecutedWorkOrderCommand command);
+    Task<ExecutedWorkOrder> HandleAsync(CreateExecutedWorkOrderCommand command, List<string> files);
 } 

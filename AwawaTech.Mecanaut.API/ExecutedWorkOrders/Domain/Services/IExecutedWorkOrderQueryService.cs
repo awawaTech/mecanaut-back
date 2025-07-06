@@ -10,5 +10,10 @@ public interface IExecutedWorkOrderQueryService
     Task<ExecutedWorkOrder> FindByIdAsync(long id);
     Task<IEnumerable<ExecutedWorkOrder>> FindByProductionLineIdAsync(long productionLineId);
     Task<IEnumerable<UsedProduct>> FindUsedProductsByExecutedWorkOrderIdAsync(long executedWorkOrderId);
+
+    Task<IEnumerable<string>> FindImagesByExecutedWorkOrderIdAsync(long executedWorkOrderId);
+    
     Task<IEnumerable<UsedProduct>> FindUsedProductsByExecutedWorkOrderIdsAsync(IEnumerable<long> executedWorkOrderIds);
+
+    Task<IEnumerable<string>> FindImagesByExecutedWorkOrderIdsAsync(IEnumerable<long> executedWorkOrderIds);
 } 

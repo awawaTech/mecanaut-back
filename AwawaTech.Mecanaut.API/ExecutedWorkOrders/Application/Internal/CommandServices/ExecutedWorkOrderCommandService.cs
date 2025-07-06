@@ -9,6 +9,7 @@ using AwawaTech.Mecanaut.API.Shared.Domain.Repositories;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Multitenancy;
 using AwawaTech.Mecanaut.API.Shared.Infrastructure.Multitenancy;
 using AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.OutboundServices;
+using AwawaTech.Mecanaut.API.Shared.Domain.Services;
 
 namespace AwawaTech.Mecanaut.API.ExecutedWorkOrders.Application.Internal.CommandServices;
 
@@ -18,17 +19,19 @@ public class ExecutedWorkOrderCommandService : IExecutedWorkOrderCommandService
     private readonly TenantContextHelper tenantHelper;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IInventoryManagementAcl _inventoryAcl;
+    private readonly IImageStorageService _imageStorage;
 
     public ExecutedWorkOrderCommandService(IExecutedWorkOrderRepository repository, IUnitOfWork unitOfWork
-    ,TenantContextHelper tenantHelper, IInventoryManagementAcl inventoryAcl)
+    ,TenantContextHelper tenantHelper, IInventoryManagementAcl inventoryAcl, IImageStorageService imageStorage)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
         this.tenantHelper = tenantHelper;
         _inventoryAcl = inventoryAcl;
+        _imageStorage = imageStorage;
     }
 
-    public async Task<ExecutedWorkOrder> HandleAsync(CreateExecutedWorkOrderCommand command)
+    public async Task<ExecutedWorkOrder> HandleAsync(CreateExecutedWorkOrderCommand command, List<string> files)
     {
         var tenantId = new TenantId(tenantHelper.GetCurrentTenantId());
         
@@ -52,6 +55,14 @@ public class ExecutedWorkOrderCommandService : IExecutedWorkOrderCommandService
         }
 
         await _unitOfWork.CompleteAsync();
+        
+        foreach (var file in files)
+        {
+           // var url = await _imageStorage.UploadImageAsync(file);
+
+            var executionImage = new ExecutionImages(executedWorkOrder.Id, file);
+            await _repository.AddEntityAsync(executionImage);
+        }
         
         foreach (var part in command.UsedProducts)
         {

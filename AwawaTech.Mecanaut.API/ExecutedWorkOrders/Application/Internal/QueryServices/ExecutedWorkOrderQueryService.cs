@@ -31,9 +31,19 @@ public class ExecutedWorkOrderQueryService : IExecutedWorkOrderQueryService
     {
         return await _repository.FindUsedProductsByExecutedWorkOrderIdAsync(executedWorkOrderId);
     }
+    
+    public async Task<IEnumerable<string>> FindImagesByExecutedWorkOrderIdAsync(long executedWorkOrderId)
+    {
+        return await _repository.FindImagesByExecutedWorkOrderIdAsync(executedWorkOrderId);
+    }
 
     public async Task<IEnumerable<UsedProduct>> FindUsedProductsByExecutedWorkOrderIdsAsync(IEnumerable<long> executedWorkOrderIds)
     {
         return await _repository.FindUsedProductsByExecutedWorkOrderIdsAsync(executedWorkOrderIds);
+    }
+    
+    public async Task<IEnumerable<string>> FindImagesByExecutedWorkOrderIdsAsync(IEnumerable<long> executedWorkOrderIds)
+    {
+        return await _repository.FindImagesByExecutedWorkOrderIdsAsync(executedWorkOrderIds);
     }
 } 
