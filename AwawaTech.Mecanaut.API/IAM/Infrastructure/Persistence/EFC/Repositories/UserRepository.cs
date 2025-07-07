@@ -57,10 +57,10 @@ public class UserRepository(AppDbContext context) : BaseRepository<User>(context
     public new async Task<IEnumerable<User>> ListAsync()
     {
         return await Context.Set<User>()
-                     .Include(u => u.Roles)
-                     .ToListAsync();
+            .Include(u => u.Roles)
+            .Where(u => u.Active) // No compares con 1 si es bool
+            .ToListAsync();
     }
-    
     public async Task<int> GetAdminUserCountByTenantId(long tenantId)
     {
         // Consultamos la tabla de usuarios y unimos con la tabla de user_roles

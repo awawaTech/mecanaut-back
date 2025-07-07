@@ -7,7 +7,7 @@ using AwawaTech.Mecanaut.API.Shared.Infrastructure.Persistence.EFC.Repositories;
 using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.Aggregates;
 using AwawaTech.Mecanaut.API.WorkOrders.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
-
+using AwawaTech.Mecanaut.API.WorkOrders.Domain.Model.ValueObjects;
 namespace AwawaTech.Mecanaut.API.WorkOrders.Infrastructure.Persistence.EFC.Repositories;
 
 public class WorkOrderRepository : BaseRepository<WorkOrder>, IWorkOrderRepository
@@ -23,7 +23,8 @@ public class WorkOrderRepository : BaseRepository<WorkOrder>, IWorkOrderReposito
     public async Task<IEnumerable<WorkOrder>> FindByProductionLineAsync(long productionLineId, TenantId tenantId)
     {
         return await Context.WorkOrders
-            .Where(x => x.ProductionLineId == productionLineId && x.TenantId == tenantId)
+            .Where(x => x.ProductionLineId == productionLineId && x.TenantId == tenantId
+            && x.Status == WorkOrderStatus.Pending)
             .ToListAsync();
     }
 } 
