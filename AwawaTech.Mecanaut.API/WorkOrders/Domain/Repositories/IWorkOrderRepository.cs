@@ -10,4 +10,6 @@ public interface IWorkOrderRepository : IBaseRepository<WorkOrder>
 {
     Task<WorkOrder> FindByIdAsync(long id, TenantId tenantId);
     Task<IEnumerable<WorkOrder>> FindByProductionLineAsync(long productionLineId, TenantId tenantId);
+
+    Task<IEnumerable<WorkOrder>> FindByProductionLineToExecuteAsync(long productionLineId, TenantId tenantId);
 } 

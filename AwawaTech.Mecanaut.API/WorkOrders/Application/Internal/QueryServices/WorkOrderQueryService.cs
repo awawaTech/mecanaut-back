@@ -25,4 +25,9 @@ public class WorkOrderQueryService : IWorkOrderQueryService
     {
         return await _repository.FindByProductionLineAsync(query.ProductionLineId, query.TenantId);
     }
+    
+    public async Task<IEnumerable<WorkOrder>> GetTo(GetWorkOrdersByProductionLineQuery query)
+    {
+        return await _repository.FindByProductionLineToExecuteAsync(query.ProductionLineId, query.TenantId);
+    }
 } 
