@@ -134,6 +134,41 @@ public class WorkOrdersController : ControllerBase
         return Ok(response);
     }
 
+    
+    [HttpGet("by-production-line-to-execute/{productionLineId:long}")]
+    public async Task<ActionResult<IEnumerable<WorkOrderResource>>> GetWorkOrdersByProductionLineToExecute(long productionLineId)
+    {
+        var tenantIdStr = User.Claims.FirstOrDefault(c => c.Type == "tenant_id")?.Value;
+        if (string.IsNullOrEmpty(tenantIdStr) || !long.TryParse(tenantIdStr, out var tenantIdValue))
+        {
+            return Unauthorized("No tenant ID found in token");
+        }
+
+        var query = new GetWorkOrdersByProductionLineQuery
+        {
+            ProductionLineId = productionLineId,
+            TenantId = new TenantId(tenantIdValue)
+        };
+
+        var workOrders = await _queryService.GetTo(query);
+        
+        var response = workOrders.Select(workOrder => new WorkOrderResource(
+            workOrder.Id,
+            workOrder.Code,
+            workOrder.Status.ToString(),
+            workOrder.Type.ToString(),
+            workOrder.Date,
+            workOrder.ProductionLineId,
+            workOrder.MachineIds,
+            workOrder.TechnicianIds,
+            workOrder.Tasks
+        ));
+
+        return Ok(response);
+    }
+
+    
+    
     [HttpPut("{id:long}/complete")]
     public async Task<ActionResult<WorkOrderResource>> CompleteWorkOrder(long id)
     {
@@ -202,4 +237,6 @@ public class WorkOrdersController : ControllerBase
 
         return Ok(response);
     }
+    
+    
 } 

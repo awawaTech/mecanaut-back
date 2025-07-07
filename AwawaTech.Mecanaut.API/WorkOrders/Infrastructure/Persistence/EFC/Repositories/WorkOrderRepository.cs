@@ -27,4 +27,22 @@ public class WorkOrderRepository : BaseRepository<WorkOrder>, IWorkOrderReposito
             && x.Status == WorkOrderStatus.Pending)
             .ToListAsync();
     }
+    
+    public async Task<IEnumerable<WorkOrder>> FindByProductionLineToExecuteAsync(long productionLineId, TenantId tenantId)
+    {
+        // 1️⃣ Ejecuta query SIN tocar la propiedad de conversión
+        var list = await Context.WorkOrders
+            .Where(x =>
+                x.ProductionLineId == productionLineId &&
+                x.TenantId == tenantId &&
+                x.Status == WorkOrderStatus.Pending)
+            .AsNoTracking()
+            .ToListAsync();
+
+        // 2️⃣ Filtra en memoria usando la propiedad que es lista
+        return list.Where(x => x.TechnicianIds != null && x.TechnicianIds.Any());
+    }
+
+
+
 } 
